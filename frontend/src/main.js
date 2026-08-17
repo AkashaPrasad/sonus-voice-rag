@@ -2,8 +2,27 @@
    The HUD renders the server's own per-stage timings, so what a judge sees is
    the same measurement the benchmark records -- not a client-side estimate. */
 
-const API = import.meta.env.VITE_API_BASE || "https://sonus-api-production.up.railway.app";
+/* The branded API domain is preferred, but its certificate is issued
+   asynchronously after the DNS record lands. Probe it once at boot and fall
+   back to the Railway service domain so the demo never depends on cert timing. */
+const API_CANDIDATES = [
+  import.meta.env.VITE_API_BASE,
+  "https://api.sonus.spacesdrive.cc",
+  "https://vaani-api-production.up.railway.app",
+].filter(Boolean);
+
+let API = API_CANDIDATES[0];
 const BUDGET_MS = 200;
+
+async function resolveAPI() {
+  for (const base of API_CANDIDATES) {
+    try {
+      const r = await fetch(`${base}/health`, { cache: "no-store" });
+      if (r.ok) { API = base; return r; }
+    } catch { /* try the next candidate */ }
+  }
+  return null;
+}
 
 const $ = (id) => document.getElementById(id);
 
@@ -34,9 +53,9 @@ const STAGES = [
 /* ── health ─────────────────────────────────────────── */
 async function checkHealth() {
   try {
-    const r = await fetch(`${API}/health`, { cache: "no-store" });
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const d = await r.json();
+    const probe = await resolveAPI();
+    if (!probe) throw new Error("no reachable API");
+    const d = await probe.json();
     el.statusDot.className = "dot ok";
     el.statusText.textContent = `${d.manifest?.n_chunks?.toLocaleString() ?? "?"} chunks · ready`;
     el.meta.textContent =
