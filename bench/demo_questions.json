@@ -1,336 +1,599 @@
 {
- "en": [
-  {
-   "conf": 0.976,
-   "q": "cell organelles definition",
-   "a": "A cell organelle is a membrane-bound compartment or structure in a cell that performs a special function [1]. Eukaryotic cells contain many organelles, such as the nucleus, endoplasmic reticulum, Golgi apparatus, mitochondria, and chloroplast [1]."
-  },
-  {
-   "conf": 0.954,
-   "q": "define competitiveness",
-   "a": "Competitiveness means being of, involving, or determined by competition, as well as liking competition or being inclined to compete. [1]"
-  },
-  {
-   "conf": 0.933,
-   "q": "tongan language translation",
-   "a": "Tongan language translation is available through services like Translation Services USA, which offers English to Tongan and Tongan to English translation [1]. Additionally, a free online English to Tongan dictionary supports translation between the two languages [4]."
-  },
-  {
-   "conf": 0.919,
-   "q": "cost to machine an engine",
-   "a": "The context says engine machine work adds to the price of a rebuild, but it does not give a specific cost for machining alone [1]."
-  },
-  {
-   "conf": 0.917,
-   "q": "what is hepatic lobe cyst on the liver",
-   "a": "A hepatic lobe cyst is a cyst on the liver, typically located in a specific lobe, such as the left lobe as seen on ultrasound [1], [3]."
-  },
-  {
-   "conf": 0.914,
-   "q": "cost of remodeling a small kitchen",
-   "a": "Based on the context, an average kitchen remodel of a 200-square-foot kitchen costs $57,000 [1]. To manage costs, keep the remodel to no more than 18% of the home's post-project value and avoid moving walls or plumbing [5]."
-  },
-  {
-   "conf": 0.906,
-   "q": "what is the definition of dry measuring cups",
-   "a": "Dry measuring cups are cups used to measure solid cooking ingredients, and they are meant to be filled to the brim so you can sweep off the excess [1][2]."
-  },
-  {
-   "conf": 0.906,
-   "q": "tombstone pizza calories",
-   "a": "Tombstone pizza has 350 calories per 1/3 pizza or per 1/4 pizza [1], and one serving of Tombstone 4 Meat Original Pizza has 290 calories [5]."
-  },
-  {
-   "conf": 0.903,
-   "q": "cost per square foot of building a home",
-   "a": "According to the context, average new home construction cost per square foot ranges from $75 to $130, varying by state [4]. However, home builders caution that using average per-square-foot costs is an inaccurate way to estimate your home's cost [2]."
-  },
-  {
-   "conf": 0.895,
-   "q": "what is trailer landing gear",
-   "a": "Trailer landing gear is the assembly that supports a tractor trailer when it is dropped or unhitched, and it is critical for keeping the trailer secure and protecting you from injury [1]."
-  },
-  {
-   "conf": 0.891,
-   "q": "what is the full form of ub",
-   "a": "UB stands for “Uniform Billing,” as in the UB-04 uniform billing form used by institutional providers [6]."
-  },
-  {
-   "conf": 0.887,
-   "q": "what is the average salary for neonatal nurses",
-   "a": "The average salary for neonatal nurses varies by country: in Canada it ranges from C$41,438 to C$80,104 per year [1], while in Norway the average base salary is NOK908,839 per year [4]. For context, the median annual wage for registered nurses in the U.S. was $68,450 in May 2016 [5]."
-  },
-  {
-   "conf": 0.884,
-   "q": "functions of local government in nigeria",
-   "a": "Based on the context, local government in Nigeria is established by law and is part of a decentralized system, with functions that are independent but sometimes overlap with other tiers [1]. No specific functions are listed."
-  },
-  {
-   "conf": 0.875,
-   "q": "are franchise fees negotiable?",
-   "a": "Franchise fees are typically non-negotiable, but you may have options such as direct or third-party financing to help manage the payment [1]."
-  },
-  {
-   "conf": 0.873,
-   "q": "the meaning of the name annice",
-   "a": "The name Annice has a Latin meaning: Lamb, Pure, Chaste. [5]"
-  },
-  {
-   "conf": 0.872,
-   "q": "temperature in the villages florida",
-   "a": "The average temperature in The Villages, FL is 70.3°F [1]."
-  },
-  {
-   "conf": 0.87,
-   "q": "costs of spinal cord",
-   "a": "The costs of a spinal cord injury vary based on severity, need for surgery, length of hospital stay, and prescribed medicines [2]. No specific dollar amounts are given in the context."
-  },
-  {
-   "conf": 0.863,
-   "q": "what is impact noise",
-   "a": "Impact noise is impulsive or impact noise, with an OSHA limit of 140 dB peak sound pressure level that is independent of duration and must be integrated into continuous noise exposure measurement. [1]"
-  },
-  {
-   "conf": 0.862,
-   "q": "cold symptoms with pink eye",
-   "a": "Cold symptoms with pink eye can include red, irritated eyes, discharge, sinus congestion, runny nose, cough, and earache [1][5]. Eye symptoms from a cold may be called conjunctivitis and can clear on their own or require eye drops [1]."
-  },
-  {
-   "conf": 0.856,
-   "q": "the moon's what affect the oceans tides on earth",
-   "a": "The moon's gravitational pull affects ocean tides on Earth. [4] Combined with the sun, these gravitational forces cause the oceans to rise and fall. [6]"
-  },
-  {
-   "conf": 0.855,
-   "q": "thermo fisher scientific benefits",
-   "a": "Thermo Fisher Scientific benefits include insurance, retirement benefits, and vacation policy, as reported by employees on Glassdoor [1]."
-  },
-  {
-   "conf": 0.844,
-   "q": "what type of attack ip spoofing",
-   "a": "IP spoofing is used in two types of attacks: DoS attacks and man-in-the-middle attacks [1]."
-  },
-  {
-   "conf": 0.835,
-   "q": "how many calories.do.you burn jumping on a large trampoline",
-   "a": "According to the context, a 125-pound person burns 143 calories per hour and a 185-pound person burns 210 calories per hour jumping on a trampoline [1]."
-  },
-  {
-   "conf": 0.835,
-   "q": "cost of poured concrete driveway",
-   "a": "According to the context, the cost to install a concrete driveway starts at $7.51–$9.26 per square foot for a basic 120-square-foot project, though the cost depends on concrete quality. [1] [5]"
-  },
-  {
-   "conf": 0.83,
-   "q": "healogics address",
-   "a": "Healogics Wound Healing Centre is at Greencoat House, St. Leonard's Road, Eastbourne, East Sussex BN21 3UT [1]."
-  },
-  {
-   "conf": 0.825,
-   "q": "how colorado taxes income",
-   "a": "Colorado taxes income with a flat state rate of 4.63 percent applied to your federal taxable income, regardless of income level [1]."
-  },
-  {
-   "conf": 0.82,
-   "q": "what is tortuosity of arteries",
-   "a": "Tortuosity of arteries refers to abnormal twisting, elongation, and winding of the arteries, as seen in arterial tortuosity syndrome where major arteries become elongated and tortuous [1]. It can also appear as kinking and coiling of arteries like the internal carotid artery with advancing age [5]."
-  },
-  {
-   "conf": 0.817,
-   "q": "how are viruses different from bacteria?",
-   "a": "Viruses cause viral infections and are not killed by antibiotics, while bacteria cause bacterial infections and usually are killed by antibiotics [1]."
-  },
-  {
-   "conf": 0.816,
-   "q": "the ostrich war",
-   "a": "The context mentions ostrich plumes being obtained for an army before and during a war, noting supply concerns as the army expanded, but it does not describe a specific conflict called \"the ostrich war.\" [1]"
-  },
-  {
-   "conf": 0.813,
-   "q": "what is net gain or loss",
-   "a": "Net gain is when income is greater than expenses, while net loss is when expenses are greater than income [1]. In final accounts, net profit or net loss represents the net result of a business [6]."
-  },
-  {
-   "conf": 0.81,
-   "q": "what is entrails mean",
-   "a": "Entrails means the intestines and other inside organs of an animal or person, especially when they are outside the body [4]. They are also called viscera or innards [1]."
-  },
-  {
-   "conf": 0.806,
-   "q": "brown's stages of language development",
-   "a": "Brown's Stages, identified by Roger Brown, provide a framework for understanding normal expressive language development in English, particularly in morphology and syntax [1]."
-  },
-  {
-   "conf": 0.805,
-   "q": "what is the domino effect",
-   "a": "The domino effect is the idea that a small change causes a similar change nearby, which then causes another, and so on in a linear sequence, like a falling row of dominoes. [1]"
-  },
-  {
-   "conf": 0.805,
-   "q": "what is providing customer service",
-   "a": "Providing customer service is the act of taking care of the customer's needs by providing and delivering professional, helpful, high quality service. [1]"
-  },
-  {
-   "conf": 0.804,
-   "q": "gram stain are used to diagnose what",
-   "a": "Gram stains are used to detect and identify bacteria in a stool sample, and to help quickly diagnose bacterial infections. [1]"
-  },
-  {
-   "conf": 0.803,
-   "q": "angela duckworth what is grit",
-   "a": "According to the passage, grit is the answer to what it takes to do really well in life, rather than innate talent [1]."
-  },
-  {
-   "conf": 0.8,
-   "q": "what is the backbone of society",
-   "a": "Women are described as the backbone of society [2]. The passage also explains that \"backbone\" symbolizes character and identity [2]."
-  }
- ],
- "hi": [
-  {
-   "conf": 0.979,
-   "q": "टिम चैपमैन की कुल संपत्ति",
-   "a": "टिम चैपमैन की कुल संपत्ति 12 लाख डॉलर है [1]।"
-  },
-  {
-   "conf": 0.939,
-   "q": "मानक पैलेट आयाम क्या हैं",
-   "a": "संयुक्त राज्य अमेरिका में लकड़ी के पैलेट का मानक आकार 48″ x 40″ है। [5]"
-  },
-  {
-   "conf": 0.938,
-   "q": "हॉकिन्स टेक्सास किस काउंटी में है",
-   "a": "हॉकिन्स, टेक्सास वुड काउंटी में स्थित है। [1]"
-  },
-  {
-   "conf": 0.937,
-   "q": "प्रशासक को परिभाषित करें",
-   "a": "प्रशासक वह व्यक्ति है जो किसी संस्था या संगठन का प्रबंधन करता है, या कानून के अनुसार प्रश"
-  },
-  {
-   "conf": 0.93,
-   "q": "वैन ब्युरेन में वर्तमान मौसम",
-   "a": "संदर्भ के अनुसार, वैन ब्युरेन (ए.आर.) के लिए वर्तमान स्थानीय मौसम की स्थिति, 5-दिवसीय पूर्वानुमान और लाइव यातायात अपडेट उपलब्ध हैं, जिसमें विस्तृत मौसम सारांश शामिल है [1]। हालाँकि, इसमें वर्तमान तापमान या मौसम का विशिष्ट विवरण नहीं दिया गया है।"
-  },
-  {
-   "conf": 0.927,
-   "q": "पेरिस में मई में मौसम कैसा होता है",
-   "a": "मई में पेरिस का मौसम तकनीकी रंगों में चित्रित शहर जैसा जीवंत वर्णित है [3]। हालांकि, दिए गए अंशों में मई के तापमान या वर्षा जैसी विशिष्ट मौसम जानकारी नहीं दी गई है [6]।"
-  },
-  {
-   "conf": 0.922,
-   "q": "कोरिया का दूसरा सबसे बड़ा शहर क्या है?",
-   "a": "कोरिया (दक्षिण कोरिया) का दूसरा सबसे बड़ा शहर बुसान है। [4]"
-  },
-  {
-   "conf": 0.911,
-   "q": "थायमेथोक्सम प्रभाव",
-   "a": "थायमेथोक्सम का विगोर प्रभाव कार्यात्मक प्रोटीन के उत्पादन में वृद्धि के कारण होता है [1]। यह स्पष्ट नहीं है कि ये प्रभाव फोलियर और मिट्टी अनुप्रयोग पर लागू होते हैं, क्योंकि केवल प्रश्न पूछा गया है, उत्तर नहीं दिया गया [1]।"
-  },
-  {
-   "conf": 0.91,
-   "q": "ग्राहक सेवा एक्सपीडिया नंबर",
-   "a": "एक्सपीडिया यू.के. ग्राहक सेवा टेलीफोन नंबर 0203 788 0445 है [1]।"
-  },
-  {
-   "conf": 0.907,
-   "q": "मैनुअल हैंडलिंग की परिभाषा क्या है",
-   "a": "मैनुअल हैंडलिंग वस्तुओं या सामग्रियों को उठाकर, धक्का देकर, नीचे उतारकर, या खींचकर परिवहन से संबंधित है। [1]"
-  },
-  {
-   "conf": 0.9,
-   "q": "जिनके खिलाफ कीटाणुनाशक प्रभावी हैं",
-   "a": "कीटाणुनाशक वनस्पति कोशिकाओं के खिलाफ प्रभावी होते हैं, लेकिन अंतर्बीजाणु के खिलाफ नहीं। [1]"
-  },
-  {
-   "conf": 0.898,
-   "q": "क्या आई.डी.सी. कनेक्टर है",
-   "a": "आई.डी.सी. कनेक्टर केबलों पर किया जाता है और अक्सर उन्हें बस आई.डी.सी. कनेक्टर कहा जाता है। [2]"
-  },
-  {
-   "conf": 0.883,
-   "q": "आपके साथ हृदय गति के लिए प्रति मिनट सामान्य धड़कन",
-   "a": "वयस्कों के लिए सामान्य विश्राम हृदय गति 60 से 100 धड़कन प्रति मिनट होती है [1]। आपकी व्यक्तिगत हृदय गति के बारे में जानकारी उपलब्ध नहीं है।"
-  },
-  {
-   "conf": 0.873,
-   "q": "कौन सा समय क्षेत्र ब्रेंटवुड, टी.एन. है",
-   "a": "ब्रेंटवुड, टेनेसी सेंट्रल टाइम ज़ोन में स्थित है। [1]"
-  },
-  {
-   "conf": 0.865,
-   "q": "नागरिक को परिभाषित करें",
-   "a": "नागरिक वह व्यक्ति है जो राज्य या राष्ट्र के संरक्षण के प्रति निष्ठा रखता है और जन्म या प्राकृतिककरण द्वारा हकदार है। [3]"
-  },
-  {
-   "conf": 0.864,
-   "q": "अमेरिकी महिलाओं पर द्वितीय विश्व युद्ध का क्या प्रभाव था?",
-   "a": "द्वितीय विश्व युद्ध के दौरान अमेरिकी महिलाओं ने कार्यस्थल पर पुरुषों की जगह ले ली, जबकि पुरुष विदेश में लड़ रहे थे; युद्ध से पहले वे घर पर रहती थीं। [5]"
-  },
-  {
-   "conf": 0.838,
-   "q": "चॉकलेट पुडिंग फज",
-   "a": "चॉकलेट पुडिंग फज केक बनाना बेहद आसान है: बेकिंग के दौरान चॉकलेट केक की परत के नीचे एक समृद्ध चॉकलेट फज सॉस अपने आप बन जाती है [1]। यह हॉट फज चॉकलेट पुडिंग केक कहलाता है [5]।"
-  },
-  {
-   "conf": 0.832,
-   "q": "लेवोफ्लोक्सासिन क्या है और इसका उपयोग किस लिए किया जाता है",
-   "a": "लेवोफ्लोक्सासिन एक नुस्खे वाली एंटीबायोटिक दवा है, जिसे ब्रांड नाम लेवाक्विन के रूप में जाना जाता है। इसका उपयोग विभिन्न जीवाणु संक्रमणों, जैसे निमोनिया और एक्यूट बैक्टीरियल साइनसाइटिस के उपचार के लिए किया जाता है [4]।"
-  },
-  {
-   "conf": 0.83,
-   "q": "सरस बादल किस प्रकार के मौसम का संकेत देते हैं?",
-   "a": "सरस बादलों की अधिक संख्या आगामी मोर्चा प्रणाली या ऊपरी वायु विक्षोभ का संकेत हो सकती है। यह आमतौर पर निकट भविष्य में तूफानी होते मौसम में परिवर्तन का संकेत देती है। [1]"
-  },
-  {
-   "conf": 0.83,
-   "q": "एस.डी.एन. का वास्तविक लाभ क्या है",
-   "a": "एस.डी.एन. का वास्तविक लाभ अनुप्रयोगों में है, जैसा कि कोहो स्टोरेज के एंड्रयू वारफील्ड ने कहा है [6]। साथ ही, इसका मुख्य लाभ नेटवर्क बैंडविड्थ और सामान्य संगणन संसाधनों की बेहतर देखरेख है [2]।"
-  },
-  {
-   "conf": 0.829,
-   "q": "वायरलेस यू.एस.बी. जो कुछ है उसे क्या कहा जाता है",
-   "a": "संदर्भ के अनुसार वायरलेस यू.एस.बी. प्रणाली के केंद्र में रेडियो और एंटीना प्रणाली होती है [6]। लेकिन इसे किसी विशेष नाम से कहा जाता है, यह जानकारी दिए गए अंशों में नहीं है।"
-  },
-  {
-   "conf": 0.826,
-   "q": "एम.एस.एफ.टी. स्टॉक का मूल्य क्या है",
-   "a": "एम.एस.एफ.टी. स्टॉक आज 6 सेंट कम होकर 27.69 डॉलर पर बंद हुआ। [4]"
-  },
-  {
-   "conf": 0.822,
-   "q": "किस राज्य में बिजली के लिए सबसे अधिक पवन ऊर्जा है",
-   "a": "टेक्सास राज्य में बिजली के लिए सबसे अधिक पवन ऊर्जा है, क्योंकि यह किसी भी अन्य राज्य की तुलना में अधिक पवन ऊर्जा उत्पादित करता है। [1]"
-  },
-  {
-   "conf": 0.821,
-   "q": "ड्रोनाबिनॉल का इस्तेमाल उपचार के लिए किया जाता है",
-   "a": "ड्रोनाबिनॉल का उपयोग कैंसर कीमोथेरेपी के कारण होने वाली मतली और उल्टी के इलाज के लिए किया जाता है। [1]"
-  },
-  {
-   "conf": 0.816,
-   "q": "गूगल क्या है तकनीक",
-   "a": "गूगल की जीवनरेखा मशीन लर्निंग है, और यह तकनीक संगठन के अंदर 100 अलग-अलग टीमों के पीछे काम करती है। [1]"
-  },
-  {
-   "conf": 0.813,
-   "q": "जम्ब को परिभाषित करें",
-   "a": "जैम्ब (जम्ब) ऊर्ध्वाधर स्तंभों या टुकड़ों की एक जोड़ी में से एक है, जो दरवाजे, खिड़की या चिमनी जैसे ख"
-  },
-  {
-   "conf": 0.81,
-   "q": "संयुक्त राज्य अमेरिका के उपराष्ट्रपति की भूमिका क्या है?",
-   "a": "संयुक्त राज्य अमेरिका के उपराष्ट्रपति राष्ट्रपति के बाद के पद पर होते हैं। राष्ट्रपति की मृत्यु, अक्षमता, इस्तीफे या हटाने की स्थिति में वे राष्ट्रपति पद संभालते हैं [1]।"
-  },
-  {
-   "conf": 0.806,
-   "q": "गलब्रेथ नाम का अर्थ है",
-   "a": "गैलब्रेथ नाम का अर्थ स्कॉटिश है, जो स्कॉटलैंड में रहने वाले ब्रिटेन की एक जनजाति से निकले व्यक्ति का जातीय नाम है। [4]"
-  },
-  {
-   "conf": 0.804,
-   "q": "ऐतिहासिक बंधक दर चार्ट",
-   "a": "यूएस 30 वर्ष बंधक दर चार्ट और ऐतिहासिक डेटा उपलब्ध हैं [1]। यह पृष्ठ बंधक दर से संबंधित चार्ट, डेटा और समाचार प्रदान करता है [1]।"
-  }
- ]
+  "hi": [
+    {
+      "q": "प्रति वर्ग फुट लागत",
+      "conf": 0.946,
+      "a": "प्रति वर्ग फुट लागत परियोजना के प्रकार पर निर्भर करती है: कंक्रीट $7–10, स्टैम्प्ड कंक्रीट $8–15+, गैरेज $35–45, पत्थर/ईंट विनियर $11–15, और डामर $3.26 प्रति वर्ग फुट है [3][4][5][6][8]। सटीक लागत के लिए विशिष्ट कार्य निर्दिष्ट करना आवश्यक है।"
+    },
+    {
+      "q": "मोनोग्राम क्या है",
+      "conf": 0.928,
+      "a": "मोनोग्राम एक ऐसी रचना है जो कहानी बताती है और इसमें व्यक्ति की आद्याक्षरे होती हैं—आमतौर पर पहले, मध्यले और अंतिम नाम के अक्षर। [1] [3]"
+    },
+    {
+      "q": "कंप्यूटर की परिभाषा",
+      "conf": 0.923,
+      "a": "कंप्यूटर एक व्यक्ति या इलेक्ट्रॉनिक उपकरण है जो त्वरित गणना करता है और जानकारी संग्रहीत या प्रसंस्करण करता है। [1]"
+    },
+    {
+      "q": "संतृप्त और असंतृप्त तेल में क्या अंतर है?",
+      "conf": 0.923,
+      "a": "संतृप्त और असंतृप्त तेल में अंतर यह है कि संतृप्त"
+    },
+    {
+      "q": "सुरक्षा और पर्यावरण प्रवर्तन ब्यूरो क्या है",
+      "conf": 0.92,
+      "a": "सुरक्षा और पर्यावरण प्रवर्तन ब्यूरो (बी.एस.ई.ई.) सुरक्षा को बढ़ावा देने, पर्यावरण की रक्षा करने और तीव्र नियामक पर्यवेक्षण व प्रवर्तन के माध्यम से अपतटीय संसाधनों के संरक्षण के लिए काम करता है; यह अमेरिका में है। [1]"
+    },
+    {
+      "q": "माइलोडिस्प्लास्टिक/माइलोप्रोलिफेरेटिव नियोप्लाज्म",
+      "conf": 0.904,
+      "a": "माइलोडिस्प्लास्टिक/माइलोप्रोलिफेरेटिव नियोप्लाज्म में माइलोडिस्प्लास्टिक सिंड्रोम (एम.डी.एस.) और माइलोप्रोलिफेरेटिव नियोप्लाज्म दोनों की विशेषताएँ होती हैं [1]। इस रोग समूह में अस्थिमज्जा पर्याप्त स्वस्थ रक्त कोशिकाएँ नहीं बनाता है, बल्कि बहुत अधिक श्वेत रक्त कोशिकाएँ बनाता है [3]।"
+    },
+    {
+      "q": "छाया अर्थव्यवस्था क्या है",
+      "conf": 0.897,
+      "a": "छाया अर्थव्यवस्था 'रडार' के नीचे होने वाली सभी कार्य गतिविधियों और व्यावसायिक लेन-देन को संदर्भित करती है—ऐसी आर्थिक गतिविधियाँ जिनके लिए जो कर देय हैं, वे नहीं चुकाए जाते [8]।"
+    },
+    {
+      "q": "आपके शरीर में शराब कितने समय तक रहती है",
+      "conf": 0.883,
+      "a": "शराब पीने के 24 घंटे बाद तक मूत्र परीक्षण में इसका पता लगाया जा सकता है [1]। शराब के सभी अवशेषों के चयापचय के बाद भी शरीर में ई.टी.जी. लंबे समय तक बना रहता है [4]।"
+    },
+    {
+      "q": "फ्लॉक्सिन ओटिक क्या है",
+      "conf": 0.879,
+      "a": "फ्लॉक्सिन ओटिक ओफ्लोक्सासिन ओटिक का ब्रांड नाम है, जो कान के संक्रमण के लिए उपयोग होता है [1]। इसे केवल कानों में उपयोग करें, आँखों में या मुँह से नहीं लेना चाहिए [5]।"
+    },
+    {
+      "q": "क्राई प्रिसिज़न जंपेबल प्लेट कैरियर जेपीसी",
+      "conf": 0.873,
+      "a": "क्राई प्रेसिजन जे.पी.सी. (जंपेबल प्लेट कैरियर) एक हल्का और न्यूनतम जैकेट है जो अधिकतम गतिशीलता, वजन बचत और पैकेज के लिए डिज़ाइन किया गया है [1][6]। इसकी कीमत 248.00 अमेरिकी डॉलर है [4]।"
+    },
+    {
+      "q": "श्मोर्ल का नोड क्या है",
+      "conf": 0.859,
+      "a": "श्मोर्ल का नोड कशेरुक की अंतिम प्लेट में एक कमजोरी है, जिसके माध्यम से डिस्क सामग्री कशेरुकीय शरीर में विस्थापित हो जाती है। यह कैंसर से संबंधित नहीं है और आमतौर पर लक्षणहीन होता है [1]।"
+    },
+    {
+      "q": "शोध पोर्टफोलियो क्या है",
+      "conf": 0.853,
+      "a": "शोध पोर्टफोलियो कुछ विषयों में शोध करने का एक वैकल्पिक तरीका है, जो एक पैकेज में कई छोटे शोध परियोजनाओं को जोड़ता है। [1]"
+    },
+    {
+      "q": "कैनबिनोइड हाइपरेमेसिस सिंड्रोम के लक्षण",
+      "conf": 0.852,
+      "a": "कैनबिनोइड हाइपरेमेसिस सिंड्रोम की विशेषता वर्षों का भांग दुरुपयोग, मतली और उल्टी के चक्रीय एपिसोड, तथा गर्म स्नान या नहाने का सीखा हुआ व्यवहार है [1]। इसके लक्षणों में बार-बार मतली, उल्टी और पेट दर्द भी शामिल हैं [7]।"
+    },
+    {
+      "q": "फफोले के अंदर क्या तरल पदार्थ होता है जिसे",
+      "conf": 0.85,
+      "a": "फफोले के अंदर साफ, पानी जैसा तरल पदार्थ सीरम कहलाता है। [3]"
+    },
+    {
+      "q": "टेमेनोस मल्टीफोंड्स क्या है",
+      "conf": 0.837,
+      "a": "टेमेनोस मल्टीफोंड्स फंड प्रशासन विशेषज्ञ है जो केवल निवेश लेखांकन और निवेशक सेवा सॉफ्टवेयर बनाता है, और 20 वर्षों से ऐसा कर रहा है [4]। यह कंप्यूटर सॉफ्टवेयर में एक सार्वजनिक कंपनी है जिसमें 1001-5000 कर्मचारी हैं [2]।"
+    },
+    {
+      "q": "मूल्य लोच के निर्धारकों में शामिल हैं",
+      "conf": 0.837,
+      "a": "मूल्य लोच के निर्धारकों में समय अवधि और अतिरिक्त क्षमता का अस्तित्व शामिल हैं। [1]"
+    },
+    {
+      "q": "जॉन कैनेडी का भाषण क्या है",
+      "conf": 0.831,
+      "a": "जॉन कैनेडी का भाषण उनका उद्घाटन भाषण था, जो उन्होंने 20 जनवरी, 1961 को पदभार संभालने पर दिया था। यह अमेरिकी इतिहास के सबसे प्रसिद्ध उद्घाटन भाषणों में से एक माना जाता है। [7]"
+    }
+  ],
+  "en": [
+    {
+      "q": "how to connect two laptops using usb cable",
+      "conf": 0.962,
+      "a": "Use a USB bridge or networking USB cable, plugging one end into a free USB port on each laptop [1][6]. Turn off both laptops before connecting, then turn them on after the cable is attached [6]."
+    },
+    {
+      "q": "gastrectasis definition",
+      "conf": 0.959,
+      "a": "Gastrectasis is the acute or chronic dilation of the stomach [1]."
+    },
+    {
+      "q": "what is elbow grease",
+      "conf": 0.943,
+      "a": "Elbow grease refers to physical effort or hard manual work, as implied by phrases like \"serious elbow grease\" and \"requires a bit of elbow grease\" [1], [8]."
+    },
+    {
+      "q": "cubs uniform numbers",
+      "conf": 0.938,
+      "a": "The Cubs began wearing uniform numbers on June 30, 1932, as the last team to add them [1]. The source lists rosters from 1932 onward with the players' uniform numbers [1]."
+    },
+    {
+      "q": "what is hepatic lobe cyst on the liver",
+      "conf": 0.917,
+      "a": "A hepatic lobe cyst is a cyst on the liver, specifically located in a lobe of the liver [1]. For example, an ultrasound can reveal a septated hepatic cyst within the left lobe of the liver [4]."
+    },
+    {
+      "q": "what is sustainable salmon",
+      "conf": 0.911,
+      "a": "Sustainable salmon refers to salmon products carrying the MSC ecolabel, as mentioned in the context [1]. The passages do not provide a full definition."
+    },
+    {
+      "q": "average salary for college grad",
+      "conf": 0.902,
+      "a": "According to the context, the average salary for entry level college graduates is $52,000 [1]. For comparison, new teacher graduates earn an average starting salary of $40,863 [6]."
+    },
+    {
+      "q": "what is helen keller's favorite color",
+      "conf": 0.899,
+      "a": "According to one joke, Helen Keller's favorite color is black [1]. Another joke says it is corduroy [5]."
+    },
+    {
+      "q": "temperature drop",
+      "conf": 0.887,
+      "a": "A sudden drop in body temperature can have normal causes, such as before sleep or before menstruation in women [1]. A dramatic air temperature drop can also occur in tubing, affected by gas flow rate [5]."
+    },
+    {
+      "q": "culture of sociology definition",
+      "conf": 0.88,
+      "a": "In sociology, there is no single fixed definition of culture [5]. A subculture is one related concept: a culture within a broader mainstream culture with its own separate values, practices, and beliefs [1]."
+    },
+    {
+      "q": "what is natural history",
+      "conf": 0.879,
+      "a": "Natural history tells the story of our living earth, comprising the systematic observation, classification, interpretation, and description of the biosphere and its inhabitants [1]. It is also a primary component of culture, as every society develops systems for classifying and valuing nature [1]."
+    },
+    {
+      "q": "what is the average cost of a movie ticket",
+      "conf": 0.875,
+      "a": "According to the context, the average cost of a movie ticket was $7.96 in the first quarter of 2014 [4]."
+    },
+    {
+      "q": "what is the dish of the day",
+      "conf": 0.871,
+      "a": "The dish of the day at Williamson's is roast duck with your choice of vegetables. [1]"
+    },
+    {
+      "q": "garnet price per carat",
+      "conf": 0.861,
+      "a": "Based on the context, garnet prices in India are Rs 300 per carat as a first choice, Rs 200 per carat as a second choice, and Rs 150 per carat if budget is limited. [1]"
+    },
+    {
+      "q": "how to mod borderlands xbox 360",
+      "conf": 0.861,
+      "a": "Use Willowtree with a USB drive and your Xbox 360 to mod Borderlands, allowing you to level up and add weapons [1]. The first key step is having a way to transfer files [8]."
+    },
+    {
+      "q": "app cost per install",
+      "conf": 0.852,
+      "a": "App cost per install varies by platform: Android's cost-per-install is about 27% less than iOS [1]. For example, a network may charge $2.50 per install, but after accounting for a 40% uninstall rate, the effective cost is $1.67 [4]."
+    },
+    {
+      "q": "how many chromosomes does a cactus have",
+      "conf": 0.846,
+      "a": "A cactus generally has 22 chromosomes (11 pairs), but some have 44 or 66 chromosomes [1]."
+    },
+    {
+      "q": "does boeing pay a dividend",
+      "conf": 0.845,
+      "a": "Yes, Boeing pays a dividend, including a quarterly dividend of 91 cents per share [1]. It has also announced dividend increases, such as a 20% increase [7]."
+    },
+    {
+      "q": "cost to replace kitchen cabinets",
+      "conf": 0.842,
+      "a": "Based on the context, installing kitchen cabinets costs $40 to $110 per cabinet, with the final price affected by several factors [1]."
+    },
+    {
+      "q": "what is exotic leather?",
+      "conf": 0.837,
+      "a": "Exotic leather is a pricier type of leather known for its unique look and feel [1]. It is also used to make items like jackets [7]."
+    }
+  ],
+  "bn": [
+    {
+      "q": "উচ্চ গতির এবং উচ্চ-টর্ক ড্রিলের মধ্যে প্রধান পার্থক্য কী?",
+      "conf": 0.974,
+      "a": "উচ্চ-গতির ড্রিলের গতি চাকের RPM দ্বারা নির্ধারিত হয়, আর উচ্চ-টর্ক ড্রিলের টর্ক নির্ধারণ করে চাক ড্রিল বিটে কত ফুট-পাউন্ড শক্তি স্থানান্তর করতে পারে [7]।"
+    },
+    {
+      "q": "সেগমেন্ট আরএস-এর দৈর্ঘ্য কত?",
+      "conf": 0.922,
+      "a": "প্রদত্ত তথ্যে RS-এর প্রকৃত দৈর্ঘ্য উল্লেখ নেই; শুধু বলা হয়েছে QR = RS এবং ST = TU [1]। তাই RS-এর সঠিক মান নির্ণয় করা যায় না।"
+    },
+    {
+      "q": "কংক্রিট বিশেষ্য",
+      "conf": 0.912,
+      "a": "কংক্রিট বিশেষ্য গণনাযোগ্য বা অগণনীয়, একবচন বা বহুবচন হতে পারে এবং সাধারণ, সঠিক বা সমষ্টিগত বিশেষ্যও হতে পারে। উদাহরণ: \"এটি আমার বাড়ি\" [1]।"
+    },
+    {
+      "q": "একটি ছোট রান্নাঘর পুনর্নির্মাণের খরচ",
+      "conf": 0.898,
+      "a": "একটি ছোট রান্নাঘর পুনর্নির্মাণে সাধারণত $৫,০০০ থেকে $১২,০০০ খরচ হতে পারে [5]। খরচ কমাতে DIY করা এবং দেয়াল বা প্লাম্বিং ফিক্সচার না সরানোর পরামর্শ দেওয়া হয়েছে [5][8]।"
+    },
+    {
+      "q": "ইন্টারকোস্টাল হার্নিয়া কী?",
+      "conf": 0.871,
+      "a": "ইন্টারকোস্টাল হার্নিয়া হলো ফ্ল্যাঙ্ক এলাকার মধ্যে দুটি পাঁজরের মাঝে হওয়া হার্নিয়া [1]। ডায়াফ্রাম্যাটিক অংশগ্রহণ ছাড়াই পেটের ইন্টারকোস্টাল হার্নিয়ার সংজ্ঞা মানদণ্ডে এমন ক্ষেত্রেই প্রযোজ্য [3]।"
+    },
+    {
+      "q": "পিউর মোটর ল্যাকুনার সিন্ড্রোম কী?",
+      "conf": 0.865,
+      "a": "পিউর মোটর ল্যাকুনার সিন্ড্রোম হলো পিউর মোটর হেমিপ্যারেসিস, যা প্রথম ক্লিনিকালভাবে স্বীকৃত ল্যাকুনার সিন্ড্রোম হিসেবে বর্ণিত হয়েছে [1]।"
+    },
+    {
+      "q": "ডেল্টা প্রিমিয়াম সিলেক্ট কী?",
+      "conf": 0.848,
+      "a": "ডেল্টা প্রিমিয়াম সিলেক্ট হল ডেল্টার একটি নতুন ক্যাবিন, যা ২০১৭ সালের শরৎকাল থেকে নির্বাচিত ফ্লাইটে উপলব্ধ। [1]"
+    },
+    {
+      "q": "ম্যাটানুস্কা-সুসিতনা বরো বিক্রয় করের হার কত",
+      "conf": 0.837,
+      "a": "প্রসঙ্গে বলা হয়েছে যে মাতানুস্কা-সুসিতনা বরোর জন্য বিক্রয় করের হার পাওয়া যায়, তবে প্রকৃত হার উল্লেখ নেই [1]। তাই নির্দিষ্ট হার জানা যায় না।"
+    },
+    {
+      "q": "মার্কিন নৌবাহিনীতে সর্বোচ্চ পদমর্যাদার আফ্রিকান আমেরিকান।",
+      "conf": 0.835,
+      "a": "গেইল হ্যারিস হলেন প্রাক্তন মার্কিন নৌবাহিনীর কর্মকর্তা এবং ২০০১ সালের ডিসেম্বরে অবসর গ্রহণের পর মার্কিন নৌবাহিনীতে সর্বোচ্চ পদমর্যাদার মহিলা আফ্রিকান আমেরিকান ছিলেন [1]।"
+    },
+    {
+      "q": "যা হল আর.এম.এস স্তর",
+      "conf": 0.83,
+      "a": "আর.এম.এস স্তর বলতে রুট মিন স্কয়ার (RMS) গড় মান বোঝায়, যা সংকেত স্তরের অবস্থানে পাওয়া যায় [2][7]। এটি মানগুলোর বর্গের গড়ের বর্গমূল হিসাবে গণনা করা হয় [7]।"
+    },
+    {
+      "q": "কনফুসিয়াসের অ্যানালেক্টস",
+      "conf": 0.815,
+      "a": "কনফুসিয়াসের অ্যানালেক্টস হল সংক্ষিপ্ত অংশের একটি সংকলন, যা কনফুসিয়াস ও তাঁর শিষ্যদের কথামালা, কনফুসিয়াসকে একজন মানুষ হিসেবে বর্ণনা এবং তাঁর জীবনের ঘটনা উপস্থাপন করে [1]। তাঁর শিক্ষার বিস্তারিত বিবরণ তাঁর মৃত্যুর বহু বছর পরে অ্যানালেক্টস-এ সংকলিত হয়েছিল, এবং তাঁর নীতিগুলি চীনা ঐতিহ্য ও বিশ্বাসের ভিত্তিতে গড়ে উঠেছিল [2]।"
+    },
+    {
+      "q": "শ্বাস-প্রশ্বাস মিনিয়ার অর্থটি কী?",
+      "conf": 0.814,
+      "a": "মিনিক্রাফ্টে শ্বাস-প্রশ্বাস হল হেলমেটে প্রয়োগ করা একটি মোহ, যা জলের নিচে ব্লক ভেঙে যেতে সময় কমায় [1]।"
+    },
+    {
+      "q": "চিক ফিল এ কোনও বান নেই কার্বোহাইড্রেট স্যান্ডউইচে।",
+      "conf": 0.813,
+      "a": "চিক-ফিল-এ চিকেন স্যান্ডউইচ (নো বান)-এ ২৩০ ক্যালোরি থাকে, যার ১৯% ক্যালোরি কার্বোহাইড্রেট থেকে আসে [1]। তবে এই স্যান্ডউইচটি কার্বোহাইড্রেটে কম বলে উল্লেখ করা হয়নি [2]।"
+    },
+    {
+      "q": "সিলাস্কা কর্পোরেশন কী?",
+      "conf": 0.799,
+      "a": "[5] অনুযায়ী, সিলাস্কা কর্পোরেশন হল একটি স্থানীয় মালিকানাধীন কর্পোরেশন যার ১৬,৫০০-এরও বেশি শেয়ারহোল্ডার রয়েছে এবং এটি দক্ষিণ-পূর্ব আলাস্কার বৃহত্তম বেসরকারি জমির মালিক। [7] এটির সভাপতি ও প্রধান নির্বাহী কর্মকর্তার উল্লেখও রয়েছে।"
+    },
+    {
+      "q": "সাদা পাউরুটিতে সোডিয়ামের মাত্রা কত",
+      "conf": 0.796,
+      "a": "সাদা পাউরুটির সোডিয়াম ব্র্যান্ডভেদে ভিন্ন; এভরিডে ভ্যালু ক্ল"
+    },
+    {
+      "q": "কি হিপোপটামাস?",
+      "conf": 0.792,
+      "a": "হিপোপটামাস আফ্রিকার একটি বড় স্তন্যপায়ী প্রাণী যা সাধারণত উদ্ভিদ খায় এবং হিপ্পোপটামিডি পরিবারের জীবিত দুটি প্রজাতির একটি। [1]"
+    },
+    {
+      "q": "জন্ম নিয়ন্ত্রণের জন্য কী ব্যবহার করা হয়?",
+      "conf": 0.787,
+      "a": "জন্ম নিয়ন্ত্রণ গর্ভধারণ প্রতিরোধের জন্য ব্যবহৃত হয়। কার্যকর ও নিরাপদ পদ্ধতি ২০ শতকে পাওয়া গেছে এবং এটিকে পরিবার পরিকল্পনা বলা হয় [1]।"
+    },
+    {
+      "q": "ডোমিনিকান প্রজাতন্ত্রের জিডিপি কত",
+      "conf": 0.786,
+      "a": "ডোমিনিকান প্রজাতন্ত্রের মোট জিডিপির পরিমাণ তথ্যসূত্রে নেই; কেবল ২০১৭ সালের প্রথম ত্রৈমাসিকে বার্ষিক প্রবৃদ্ধি ৫.২০% ছিল বলে উল্লেখ আছে [1]। তাই জিডিপির প্রকৃত সংখ্যা বলা সম্ভব নয়।"
+    },
+    {
+      "q": "মাস্টার প্রধানের আসল নাম কী?",
+      "conf": 0.784,
+      "a": "মাস্টার প্রধানের আসল নাম কেউ জানতে পারবে না; আমাদের মস্তিষ্ক তার আসল নামের বিশালতা প্রক্রিয়া করার মতো শক্তিশালী নয়। [4]"
+    },
+    {
+      "q": "হেকলারের ভেটো সংজ্ঞা",
+      "conf": 0.783,
+      "a": "হেকলারের ভেটো হল বক্তব্যের উপর একটি অনুমোদনযোগ্য বিষয়ভিত্তিক সীমাবদ্ধতা, যেখানে দর্শকদের প্রত্যাশিত অশৃঙ্খল বা হিংসাত্মক প্রতিক্রিয়ার কারণে বক্তব্য নিষিদ্ধ করা হয় [3]।"
+    }
+  ],
+  "ta": [
+    {
+      "q": "போடோடெர்மாடைடிஸ் என்பது என்ன?",
+      "conf": 1.013,
+      "a": "போடோடெர்மாடைடிஸ் என்பது கால்கள் அல்லது பாதங்களின் அழற்சியை விவரிக்கப் பயன்படுத்தப்படும் ஒரு சொல் ஆகும். [1]"
+    },
+    {
+      "q": "ஹெஸ்லின் ரோத்தன்பெர்க் ஃபார்லி & மெசிட்டி பி.சி.",
+      "conf": 0.965,
+      "a": "ஹெஸ்லின் ரோத்தன்பெர்க் ஃபார்லி & மெசிட்டி, பி.சி. நியூயார்க்கின் ஆல்பனியில் சட்ட அலுவலகத்தைக் கொண்டுள்ளது [2]. அக்டோபரில் நியூயார்க்கில் நடைபெறும் பிசினஸ் கனெக்ஷன் ஃபோரமின் விளம்பரதாரர்களாகவும் உள்ளது [4]."
+    },
+    {
+      "q": "என்ன இன்டிசைன் ஸ்லக்",
+      "conf": 0.963,
+      "a": "அடோப் இன்டிசைனில் ஸ்லக் பகுதி என்பது ஒரு ஸ்லக் பகுதியாகும், அதை இன்டிசைனில் அமைக்கலாம். [1]"
+    },
+    {
+      "q": "கியோர்கே முரேசனின் நிகர மதிப்பு",
+      "conf": 0.956,
+      "a": "கியோர்கே முரேசனின் நிகர மதிப்பு $1.3 மில்லியன் ஆகும் [1]."
+    },
+    {
+      "q": "ஹலாலி அணை போபால்",
+      "conf": 0.943,
+      "a": "ஹலாலி அணை (ஹலாலி நீர்த்தேக்கம்) இந்தியாவின் மத்தியப் பிரதேச மாநிலம் ரைசென் மாவட்டத்தில், ஹலாலி ஆற்றில் கட்டப்பட்டுள்ளது; இது போபாலிலிருந்து 40 கிமீ தொலைவில் உள்ளது [6]. போபாலில் செய்ய வேண்டியவற்றின் பட்டியலிலும் இது இடம்பெற்றுள்ளது [1]."
+    },
+    {
+      "q": "ஆரிக் கோல்ட்ஃபிங்கர் வேடத்தில் நடித்த ஜெர்மன் நடிகர்.",
+      "conf": 0.94,
+      "a": "ஆரிக் கோல்ட்ஃபிங்கர் வேடத்தில் நடித்த ஜெர்மன் நடிகர் கெர்ட் ஃப்ரோப் ஆவார் [4], [8]."
+    },
+    {
+      "q": "பெஃபா என்றால் என்ன அர்த்தம்",
+      "conf": 0.913,
+      "a": "பெஃபா என்பது ஆப்பிரிக்காவின் பெந்தேகோஸ்தல் இவாஞ்சலிகல் ஃபெலோஷிப் என்பதன் சுருக்கம்/பேச்சுவழக்கு ஆகும் [1]."
+    },
+    {
+      "q": "அறிவிக்கப்பட்ட வரையறை",
+      "conf": 0.903,
+      "a": "பத்தியின் படி, \"அறிவிக்கப்பட்ட\" என்பது முக்கியமான செய்திகளைத் தெரிவிக்கும் அல்லது அறிவிக்கும் நபர்; ஒரு தூதுவர் என வரையறுக்கப்பட்டுள்ளது [1]."
+    },
+    {
+      "q": "ஹைட்ரஜன் அயனி பம்ப் என்பது என்ன?",
+      "conf": 0.85,
+      "a": "ஹைட்ரஜன் அயனி பம்ப் என்பது, ஹைட்ரஜன் அயனிகள் (புரோட்டான்கள்) மைட்டோகாண்ட்ரியா மேட்ரிக்ஸிலிருந்து வெளியேற்றப்பட்டு ஒரு புரோட்டான் கிரேடியண்டை உருவாக்கும் செயல்முறையாகும் [6]."
+    },
+    {
+      "q": "தனிமங்களும் சேர்மங்களும் தூய பொருட்களாக இருப்பதற்கான காரணம்",
+      "conf": 0.847,
+      "a": "தனிமங்கள் ஒரே வகையான அணுக்களால் ஆனவை, சேர்மங்கள் வேறுபட்ட தனிமங்களின் அணுக்களால் நிலையான விகிதத்தில் பிணைக்கப்பட்டுள்ளன [1]. மேலும் சேர்மங்கள் ஒரே ஒரு வகையான மூலக்கூறுகளை மட்டுமே கொண்டிருப்பதால் அவை தூய பொருளாகும் [5]."
+    },
+    {
+      "q": "நிகர லாபம் என்பது என்ன?",
+      "conf": 0.835,
+      "a": "நிகர லாபம் என்பது உங்கள் வருமானம் செலவுகளை விட அதிகமாக இருக்கும் நிலை [1]. அனைத்து நேர்மறை மற்றும் எதிர்மறை தாக்கங்களும் கணக்கிடப்பட்ட பிறகு ஒரு அளவில் ஏற்படும் ஒட்டுமொத்த மேம்பாடும் இதுவே [8]."
+    },
+    {
+      "q": "விலை நெகிழ்வுத்தன்மையின் காரணிகளில்",
+      "conf": 0.832,
+      "a": "விநியோகத்தின் விலை நெகிழ்வுத்தன்மையை நிர்ணயிக்கும் காரணிகளில் காலம் மற்றும் கூடுதல் திறன் இருப்பு ஆகியவை அடங்கும்; முதல் காரணி காலம் ஆகும் [1]."
+    },
+    {
+      "q": "உடலுக்கான கிரானோலாவின் ஆரோக்கிய நன்மைகள்",
+      "conf": 0.829,
+      "a": "கிரானோலாவின் ஆரோக்கிய நன்மைகளாக எடை இழப்பு மற்றும் செரிமான மேம்பாடு உள்ளன [1]. குறிப்பாக, கிரானோலா செரிமான உதவியாக செயல்பட்டு செரிமானத்தை மேம்படுத்துகிறது [4]."
+    },
+    {
+      "q": "ஸ்மித்வில்லேவில் உள்ள ஹோட்டல்கள், என்ஜே",
+      "conf": 0.828,
+      "a": "ஸ்மித்வில்லே அருகே உள்ள கலோவேயில் ஹோட்டல்கள் உள்ளன; அவை மலிவான, 5 நட்சத்திர, அல்லது குடும்பத்திற்கு ஏற்றவை எனத் தேடலாம் [1]."
+    },
+    {
+      "q": "என்ன விசை இருக்கும்?",
+      "conf": 0.819,
+      "a": "நிகர விசை என்பது ஒரு பொருளின் மீது செயல்படும் மொத்த விசையின் அளவும் திசையும் ஆகும்; அது செயல்பட்டால் அந்த விசை சமநிலையற்றதாக இருக்கும் [1]."
+    },
+    {
+      "q": "ஜிம்மில் ஆசிரியராக வேண்டுமானால் உங்களுக்கு பட்டம் தேவையா?",
+      "conf": 0.815,
+      "a": "ஆம், ஜிம் ஆசிரியராக பட்டம் தேவை; ஒஹையோவில் சான்றளிக்கப்பட்ட ஆசிரியராக இளங்கலை பட்டம் கட்டாயம் [7]. கைனேசியாலஜி அல்லது பை-எட் போன்ற பட்டங்கள் பொதுவாகப் பயன்படுத்தப்படுகின்றன [1]."
+    },
+    {
+      "q": "வேலையின்மை வாடிக்கையாளர் சேவை எண்",
+      "conf": 0.805,
+      "a": "வேலையின்மை வாடிக்கையாளர் சேவை எண்கள்: புதிய மெக்சிகோ +1 (575) 748-1303; மேற்கு வர்ஜீனியா +1 304 558-2636 / +1 800 635-0189; பர்மிங்காம் +1-205-663-2501; ஆர்கன்சாஸ் +1 (870) 534-1920 [1]. டெக்சாஸுக்கு 512-463-2999 [3]."
+    },
+    {
+      "q": "என்ன சுருக்கம்",
+      "conf": 0.803,
+      "a": "PEFA என்பது “சுருக்கங்கள், சுருக்கங்களைத் தேடுங்கள்” என்பதைக் குறிக்கும் சுருக்கமாகும் [8]."
+    },
+    {
+      "q": "சோலாரிஸ் 11இல் சோலாரிஸ் கிளஸ்டர் 4.2 எப்படி நிறுவுவது",
+      "conf": 0.793,
+      "a": "சோலாரிஸ் கிளஸ்டர் 4.2 ஐ நிறுவ, `pkg` கட்டளையைப் பயன்படுத்தவும் [4]. சோலாரிஸ் 11.2க்கு SRU 13.6.2 உடன் சோலாரிஸ் கிளஸ்டர் 4.2 SRU5.1 செயல்படுகிறது; வெவ்வேறு தொகுப்புக் குழுக்களில் மேனேஜருக்கு SRU1.3 அல்லது அதற்கு மேல் பரிந்துரைக்கப்படுகிறது [1][7]."
+    },
+    {
+      "q": "மறுசுழற்சி மாசுபாடு என்பது என்ன?",
+      "conf": 0.789,
+      "a": "மறுசுழற்சி மாசுபாடு என்பது மறுசுழற்சி நீரோடையில் உள்ள அசுத்தத்தைக் குறிக்கும்; இதைத் தவிர்ப்பதற்கு,"
+    },
+    {
+      "q": "ரத்த வைரம் என்றால் என்ன?",
+      "conf": 0.789,
+      "a": "ரத்த வைரம் என்பது வைரம் அகழப்படும் பகுதியில் வன்முறைக் கிளர்ச்சிக்கு நிதியளிக்க விற்கப்படும் வைரமாகும். இவை மோதல் வைரங்கள் என்றும் அழைக்கப்படுகின்றன [2], [4]."
+    },
+    {
+      "q": "என்ன தங்கம் பூசப்பட்டது",
+      "conf": 0.788,
+      "a": "தங்கம் பூசப்பட்ட நகைகள் என்பது மேற்பரப்பில் மெல்லிய தங்க அடுக்கு பூசப்பட்ட நகைகள் ஆகும் [1]. பொதுவான குறியீடுகளாக 14KGP, 14K HGE, மற்றும் 24K தங்கம் பூசப்பட்ட என்பவை உள்ளன [8]."
+    }
+  ],
+  "te": [
+    {
+      "q": "తృతీయ సమానార్థకాలు",
+      "conf": 0.959,
+      "a": "తృతీయ సమానార్థకాలు: మూడవ, 3వ మరియు తృతీయ కాలం [1]."
+    },
+    {
+      "q": "మోనోగ్రామ్ అంటే ఏమిటి?",
+      "conf": 0.94,
+      "a": "మోనోగ్రామ్ ఒక కథను చెబుతుంది [1]. మోనోగ్రామ్‌లు రెండు ప్రధాన రకాలుగా ఉంటాయి: అన్ని అక్షరాలు ఒకే పరిమాణంలో ఉండేవి, మరియు మధ్య అక్షరం పెద్దగా ఉండేవి [8]."
+    },
+    {
+      "q": "ఒత్తిడి చర్మంపై దద్దుర్లు కలిగించవచ్చు",
+      "conf": 0.918,
+      "a": "అవును, ఒత్తిడి చర్మంపై దద్దుర్లు కలిగించవచ్చు [1]. ఒత్తిడి దద్దుర్లు ఎర్రటి, దురదగల బుడిపెలుగా కనిపించవచ్చు [3]."
+    },
+    {
+      "q": "జలుబు మరియు ఫ్లూలో తేడా ఏమిటి",
+      "conf": 0.909,
+      "a": "జలుబు మరియు ఫ్లూ రెండూ శ్వాసకోశ ఇన్ఫెక్షన్లే, లక్షణాలు ఒకేలా ఉన్నా ఫ్లూ చాలా తీవ్రంగా ఉంటుంది [1]. అవి అనేక లక్షణాలను పంచుకుంటాయి కాబట్టి వాటిని వేరు చేయడం కష్టం [7]."
+    },
+    {
+      "q": "కార్బోనేట్ పొర",
+      "conf": 0.883,
+      "a": "కాల్సియం కార్బోనేట్ (CaCO3) షెల్స్ మధ్య పొర నుండి తయారవుతుందని [1] పేర్కొంది. కాబట్టి కార్బోనేట్ పొర అనేది షెల్స్ మధ్య పొరలో ఉండే కాల్సియం కార్బోనేట్ను సూచిస్తుంది. [1]"
+    },
+    {
+      "q": "హైబ్రిడైజేషన్ సిద్ధాంతం ఏమిటి",
+      "conf": 0.855,
+      "a": "హైబ్రిడైజేషన్ అనేది అణు కక్ష్యలు కలిసి కొత్త హైబ్రిడైజ్ చేయబడిన కక్ష్యలను ఏర్పరచే భావన, ఇది అణు జ్యామితి మరియు బంధన లక్షణాలను ప్రభావితం చేస్తుంది. ఇది వేలెన్స్ బంధం సిద్ధాంతం యొక్క విస్తరణ కూడా [1]."
+    },
+    {
+      "q": "సెయింట్ లూయిస్, మో మరియు శాన్ డీగో, కెఎ మధ్య దూరం.",
+      "conf": 0.841,
+      "a": "సెయింట్ లూయిస్ మరియు శాన్ డియాగో మధ్య నేరుగా ఉన్న దూరం 1549 మైళ్లు లేదా 2492.34 కిలోమీటర్లు. [1]"
+    },
+    {
+      "q": "పాట్రిసియా కార్న్‌వెల్ యొక్క తాజా పుస్తకం ఏమిటి",
+      "conf": 0.836,
+      "a": "పాట్రిసియా కార్న్‌వెల్ యొక్క తాజా పుస్తకం \"కావోస్\", ఇది కే స్కార్పెట్టా సిరీస్‌లో 24వ పుస్తకం, 2016లో ప్రచురించబడింది [1]."
+    },
+    {
+      "q": "పరిశోధన ప్రతిపాదనలో సమస్య యొక్క ప్రకటన ఏమిటి?",
+      "conf": 0.836,
+      "a": "పరిశోధన ప్రతిపాదనలో సమస్య యొక్క ప్రకటన అనేది సమస్య యొక్క స్పష్టమైన ప్రకటన, ఇది పరిశోధన యొక్క కేంద్ర బిందువు మరియు అత్యంత ముఖ్యమైన అంశం. [1]"
+    },
+    {
+      "q": "వ్యాపించిన సెంట్రిలోబ్యులార్ ఎంఫిసీమా",
+      "conf": 0.829,
+      "a": "వ్యాపించిన సెంట్రిలోబ్యులార్ ఎంఫిసీమా అనేది సెంట్రియాసినార్ ఎంఫిసీమాతో సమానమైన దీర్ఘకాలిక, పురోగమన ఊపిరితిత్తుల వ్యాధి [1]. దీని సాధారణ బాహ్య సంకేతం ఊపిరితిత్తుల అతిగా ఉబ్బడం వల్ల వచ్చే బ్యారెల్ ఆకారపు ఛాతీ [6]."
+    },
+    {
+      "q": "రోటర్ల షెల్ఫ్ లైఫ్ ఏమిటి",
+      "conf": 0.827,
+      "a": "రోటర్ల షెల్ఫ్ జీవితకాలం రోటర్ రకంపై ఆధారపడి ఉంటుంది, సగటున తయారీ తేదీ నుండి 9 నుండి 18 నెలలు ఉంటుంది. గడువు తేదీని నిర్ణయించడానికి ప్యాకేజీ లేబుల్ చూడాలి [1]."
+    },
+    {
+      "q": "నికర లాభం లేదా నష్టం ఏమిటి",
+      "conf": 0.825,
+      "a": "నికర లాభం లేదా నష్టం అనేది లాభం మరియు నష్టం ఖాతా యొక్క నిల్వ, ఇది వర్తక ఖాతా నిల్వ (స్థూల లాభం లేదా స్థూల నష్టం)తో ప్రారంభమై బ్యాలెన్స్ షీట్లోని మూలధన ఖాతాకు బదిలీ చేయబడుతుంది [7]. లాభం అంటే ఆస్తి విలువలో పెరుగుదల అని నిర్వచించబడింది [5]."
+    },
+    {
+      "q": "అల్లకల్లోలం అంటే ఏమిటి?",
+      "conf": 0.82,
+      "a": "అల్లకల్లోలం అంటే ఒక గొప్ప మార్పు, ముఖ్యంగా చాలా ఇబ్బంది, కార్యకలాపం లేదా ఇబ్బందిని కలిగించేది [1]."
+    },
+    {
+      "q": "జెరాల్డ్ ఫోర్డ్ వారసత్వం ఏమిటి",
+      "conf": 0.814,
+      "a": "జాన్ మీచామ్ జెరాల్డ్ ఫోర్డ్ జీవితం మరియు వారసత్వం గురించి మాట్లాడారు [1]. అతని వారసత్వం అంచనా వేయలేనిదిగా వర్ణించబడింది [3]."
+    },
+    {
+      "q": "పరమాణువులు మరియు అణువులు ఏమితో నిండి ఉంటాయి",
+      "conf": 0.811,
+      "a": "పరమాణువులు ప్రోటాన్లను కలిగి ఉంటాయి; అణువులు అణువులతో కూడి ఉంటాయి [1], [2]."
+    },
+    {
+      "q": "కళాశాల పట్టభద్రుల సగటు జీతం",
+      "conf": 0.809,
+      "a": "ప్రవేశ స్థాయి కళాశాల పట్టభద్రుల ఉద్యోగాల సగటు జీతం $52,000. [1]"
+    },
+    {
+      "q": "బ్రూక్లిన్ న్యూయార్క్‌లో ఉష్ణోగ్రత",
+      "conf": 0.809,
+      "a": "బ్రూక్లిన్, న్యూయార్క్ సగటు ఉష్ణోగ్రత 52.78°F, ఇది న్యూయార్క్ సగటు (48.17°F) కంటే ఎక్కువ మరియు జాతీయ సగటు (54.45°F) కంటే తక్కువ [1]."
+    },
+    {
+      "q": "రీజియన్ 2 ఏమిటి",
+      "conf": 0.807,
+      "a": "రీజియన్ 2 అనేది DVD రీజియన్ కోడ్, ఇది కాపీరైట్ మరియు చలనచిత్ర పంపిణీ హక్కులను రక్షించడానికి ఉపయోగించబడుతుంది. ఈ రీజియన్‌లో జపాన్, ఐరోపా, దక్షిణాఫ్రికా, మధ్యప్రాచ్యం మరియు గ్రీన్‌ల్యాండ్ ఉన్నాయి [1]."
+    },
+    {
+      "q": "కిన్నెరెట్ సార్డిన్ అంటే ఏమిటి?",
+      "conf": 0.806,
+      "a": "కిన్నెరెట్ సార్డిన్ అనేది కిన్నెరెట్ సరస్సులోని చేపల జీవావస్థలో 50% కంటే ఎక్కువ ఉండే చేప జాతి. [1]"
+    },
+    {
+      "q": "క్రెడిట్ కార్డ్ ఫేర్",
+      "conf": 0.799,
+      "a": "క్రెడిట్ కార్డులకు అధిక వడ్డీ రేట్లు ఉంటాయి మరియు అవి రెవల్వింగ్ లైన్ ఆఫ్ క్రెడిట్‌గా పనిచేస్తాయి [7]. మీ బ్యాలెన్స్ మరియు చెల్లింపు చరిత్ర మీ క్రెడిట్ స్కోర్‌ను ప్రభావితం చేయవచ్చు [7]."
+    }
+  ],
+  "mr": [
+    {
+      "q": "घरगुती लिव्हरेज म्हणजे काय",
+      "conf": 0.954,
+      "a": "घरगुती लिव्हरेज म्हणजे वैयक्तिक गुंतवणूकदारांनी कंपनीच्या लिव्हरेजमध्ये कृत्रिमरित्या समायोजन करण्यासाठी वापरलेले तंत्र आहे. [6]"
+    },
+    {
+      "q": "कॅनबिनॉइड हायपरेमेसिस सिंड्रोमची लक्षणे",
+      "conf": 0.947,
+      "a": "कॅनबिनॉइड हायपरेमेसिस सिंड्रोम असलेल्या लोकांना उलट्यांचे वारंवार झटके येतात आणि या प्रकरणांदरम्यान लक्षणे नसलेली वेळ येते [1]."
+    },
+    {
+      "q": "पडद्याचे हुक्स प्रकार",
+      "conf": 0.888,
+      "a": "पडद्याच्या प्रकारावर किंवा काठीवर अवलंबून वेगवेगळे हुक वापरतात; उदा. पिंच प्लीटेड पडद्यांसाठी पिन हुक वापरतात, पण मानक काठीवर नाही [1]. इतर प्रकारांत फूल, चुंबकीय, अमेरिकन, स्टेनलेस, समायोज्य, भारी कर्तव्य, शू-आकार इत्यादींचा समावेश आहे [2]."
+    },
+    {
+      "q": "संचयी तूट परिकल्पना",
+      "conf": 0.886,
+      "a": "संचयी तूट परिकल्पना ही पर्यावरणीयदृष्ट्या वंचित गटांच्या कमी मानसिक चाचणी गुणांच्या कारणाशी संबंधित आहे. [1]"
+    },
+    {
+      "q": "टेक्सास बाल सहाय्य फोन नंबर",
+      "conf": 0.867,
+      "a": "टेक्सास बाल सहाय्य का फोन नंबर 1-800-252-8014 है। [1]"
+    },
+    {
+      "q": "फ्लॅशचे खरे नाव काय आहे",
+      "conf": 0.856,
+      "a": "फ्लॅशचे खरे नाव जे गॅरिक आहे, असे [1] मध्ये सांगितले आहे."
+    },
+    {
+      "q": "प्रति चौरस फूट सरासरी अंगणाच्या स्लॅबची किंमत",
+      "conf": 0.855,
+      "a": "प्रति चौरस फूट सरासरी काँक्रीटच्या अंगणाची (पॅटिओ स्लॅब) किंमत $3-$8 आहे. [1]"
+    },
+    {
+      "q": "खाजगी विद्यापीठे म्हणजे काय?",
+      "conf": 0.843,
+      "a": "खाजगी विद्यापीठे म्हणजे स्वतंत्र शैक्षणिक संस्था जी स्वतःची धोरणे आणि उद्दिष्टे ठरवते आणि खाजगीरित्या वित्तपुरवठा केला जातो. [1]"
+    },
+    {
+      "q": "कॅक्टसमध्ये किती गुणसूत्रे असतात",
+      "conf": 0.842,
+      "a": "कॅक्टसमध्ये सामान्यतः २२ गुणसूत्रे ११ जोड्यांमध्ये असतात [8]. तथापि, काही कॅक्टस वनस्पतींमध्ये ४४ किंवा अगदी ६६ गुणसूत्रे असू शकतात [1]."
+    },
+    {
+      "q": "प्रोटोकॉल एल.एल.डी.पी. म्हणजे काय",
+      "conf": 0.84,
+      "a": "एल.एल.डी.पी. म्हणजे लिंक लेयर डिस्कवरी प्रोटोकॉल, एक उदयोन्मुख मानक आहे. हे LAN च्या विस्तारामुळे उद्भवलेल्या कॉन्फिगरेशन संबंधित समस्यांचे समाधान प्रदान करते [5]."
+    },
+    {
+      "q": "मज्जासंस्था म्हणजे काय",
+      "conf": 0.83,
+      "a": "मज्जासंस्था म्हणजे शरीरातील एक प्रणाली असून तिचे दोन प्रमुख भाग आहेत: मध्यवर्ती मज्जासंस्था (CNS) आणि परिधीय मज्जासंस्था (PNS); CNS मध्ये मेंदू आणि मज्जारज्जू असतात. [6] सहानुभूतीशील मज्जासंस्था ही स्वायत्त मज्जासंस्थेचा भाग आहे आणि ती पाठीच्या कण्यातून उद्भवते."
+    },
+    {
+      "q": "मीटरमध्ये फूट संख्या",
+      "conf": 0.819,
+      "a": "एका मीटरमध्ये सुमारे ३.२८०८३९९ फूट असतात [7]. एक फूट = ०.३०४८ मीटर [4]."
+    },
+    {
+      "q": "प्लीहेचे मुख्य कार्य काय आहे",
+      "conf": 0.817,
+      "a": "प्लीहेचे मुख्य कार्य म्हणजे पाचक विकरांचे उत्पादन आणि अन्न पचवण्यासाठी ड्युओडेनममध्ये स्राव करणे, असे डॉ. क्नेच्ट यांनी सांगितले आहे. [1]"
+    },
+    {
+      "q": "क्रेउटझफेल्ड-जॅकोब डिमेंशियाची लक्षणे",
+      "conf": 0.803,
+      "a": "क्रेउटझफेल्ड-जॅकोब रोगाच्या (सीजेडी) लक्षणांचा नमुना प्रकारावर अवलंबून बदलतो; तुरळक सीजेडीमध्ये लक्षणे प्रामुख्याने मज्जासंस्थेवर परिणाम करतात आणि काही महिन्यांत झपाट्याने बिघडतात. [1]"
+    },
+    {
+      "q": "जपानमधील सर्वात अलीकडील नैसर्गिक आपत्ती कोणती आहे",
+      "conf": 0.803,
+      "a": "या संदर्भात जपानमधील सर्वात अलीकडील नैसर्गिक आपत्ती कोणती हे नमूद केलेले नाही; फक्त १९९५ आणि २०११ मधील आपत्ती आणि २०१३ ची यादी आहे. [1][6]"
+    },
+    {
+      "q": "कालावधी २ ची सर्वोच्च मुख्य ऊर्जा पातळी",
+      "conf": 0.797,
+      "a": "कालावधी २ ची सर्वोच्च मुख्य ऊर्जा पातळी २ आहे. [1][3]"
+    },
+    {
+      "q": "प्रोस्टॅग्लॅंडिन्सचे कार्य काय आहे",
+      "conf": 0.784,
+      "a": "प्रोस्टॅग्लँडिन्सच्या उत्पादित स्वरूपांचा वापर प्रसूती प्रेरित करण्यासाठी केला जाऊ शकतो [5]. त्यांच्या नियंत्रणाबद्दल सांगितलेले नाही [5]."
+    },
+    {
+      "q": "ब्रेक आणि रोटर्सची किंमत",
+      "conf": 0.78,
+      "a": "ब्रेक पॅडच्या संचाची सरासरी किंमत $25-75 आहे, तर रोटर्सची किंमत $75-150 प्रति तुकडा आहे (ही किंमत भागांची आहे) [1]."
+    }
+  ]
 }
