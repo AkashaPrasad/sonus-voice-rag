@@ -162,10 +162,28 @@ function escapeHTML(value) {
   ));
 }
 
+/* Every language the corpus can be built with. Only the ones actually present
+   in DEMO_QUESTIONS.md become keypads, so adding a language to the index needs
+   no frontend change -- regenerate the doc and the tab appears. */
+const LANGUAGE_KEYPADS = [
+  { heading: "English", label: "English", native: "EN PRESETS", code: "en" },
+  { heading: "Hindi", label: "Hindi", native: "HI (हिन्दी)", code: "hi" },
+  { heading: "Bengali", label: "Bengali", native: "BN (বাংলা)", code: "bn" },
+  { heading: "Tamil", label: "Tamil", native: "TA (தமிழ்)", code: "ta" },
+  { heading: "Telugu", label: "Telugu", native: "TE (తెలుగు)", code: "te" },
+  { heading: "Marathi", label: "Marathi", native: "MR (मराठी)", code: "mr" },
+  { heading: "Gujarati", label: "Gujarati", native: "GU (ગુજરાતી)", code: "gu" },
+  { heading: "Kannada", label: "Kannada", native: "KN (ಕನ್ನಡ)", code: "kn" },
+  { heading: "Malayalam", label: "Malayalam", native: "ML (മലയാളം)", code: "ml" },
+  { heading: "Punjabi", label: "Punjabi", native: "PA (ਪੰਜਾਬੀ)", code: "pa" },
+  { heading: "Odia", label: "Odia", native: "OR (ଓଡ଼ିଆ)", code: "or" },
+  { heading: "Urdu", label: "Urdu", native: "UR (اردو)", code: "ur" },
+];
+
 function parseDemoQuestions(markdown) {
   const groups = [
-    extractLanguageGroup(markdown, "English", "English", "EN PRESETS", "en"),
-    extractLanguageGroup(markdown, "Hindi", "Hindi", "HI (हिन्दी)", "hi"),
+    ...LANGUAGE_KEYPADS.map((l) =>
+      extractLanguageGroup(markdown, l.heading, l.label, l.native, l.code)),
     extractRefusalGroup(markdown),
   ].filter(Boolean);
 
