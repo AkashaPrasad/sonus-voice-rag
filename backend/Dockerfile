@@ -20,8 +20,8 @@ RUN python -c "from model2vec import StaticModel; StaticModel.from_pretrained('m
 # Build the index at image build time.
 # Bilingual index: both sides of each parallel passage pair are indexed, so
 # English queries match English passages instead of retrieving Indic noise.
-ARG CORPUS_LANGS=hi,ta
-ARG CORPUS_ROWS=2500
+ARG CORPUS_LANGS=hi
+ARG CORPUS_ROWS=9000
 RUN python ingest/build_bilingual.py --langs $CORPUS_LANGS \
       --rows $CORPUS_ROWS --strategy s5_hierarchical --out /app/index \
  && rm -rf /root/.cache/huggingface/datasets /root/.cache/huggingface/hub/datasets*
