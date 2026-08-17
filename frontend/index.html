@@ -3,182 +3,229 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Sonus · Voice RAG</title>
-<meta name="description" content="Voice-first multilingual grounded question answering over AI4Bharat MSMARCO-XI, with a live latency instrument." />
+<title>SONUS DS-200 · Tactile Acoustic Telemetry Workstation</title>
+<meta name="description" content="Sonus DS-200 is an industrial tactile voice retrieval workstation over MSMARCO-XI with hardware latency telemetry, vector oscilloscope, and bilingual prompt keypads." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;600&family=Noto+Sans+Tamil:wght@400;600&family=Noto+Sans+Telugu:wght@400;600&family=Noto+Sans+Bengali:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesk:opsz,wght@12..96,600;12..96,800&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Outfit:wght@400;500;600&family=Noto+Sans+Devanagari:wght@400;600&family=Noto+Sans+Tamil:wght@400;600&family=Noto+Sans+Telugu:wght@400;600&family=Noto+Sans+Bengali:wght@400;600&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="/src/style.css" />
 </head>
 <body>
-<!--
-THESIS: Sonus is a voice instrument, not a chatbot; the page centers a living retrieval core and lets the answer prove itself with timings and citations.
-OWN-WORLD: Midnight alloy plates, ember-gold energy, sea-glass telemetry, dense mono readouts, and concentric signal geometry instead of card stacks.
-STORY: A judge sees connection truth, speaks or types, watches the system listen and retrieve, then reads either a grounded answer or an explicit abstention.
-FIRST VIEWPORT: Left rail carries the query composer, center stage holds the animated voice core with the live mic, right rail holds the latency instrument and pipeline controls, all above the answer and evidence dock.
-FORM: operate · resonance instrument console · seed sonus-resonance-console-v1
-FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
--->
-<div class="grain" aria-hidden="true"></div>
-<div class="aurora" aria-hidden="true"></div>
+<div class="chassis-texture" aria-hidden="true"></div>
 
-<div class="shell" id="appShell">
-  <header class="masthead">
-    <div class="masthead__brand">
-      <div class="brandmark" aria-hidden="true">
-        <span class="brandmark__ring"></span>
-        <span class="brandmark__core"></span>
+<div class="hardware-console">
+  <!-- Top Rack Unit -->
+  <header class="top-rack-unit">
+    <div class="brand-plate">
+      <div class="screw-head" aria-hidden="true"></div>
+      <div class="brand-info">
+        <div class="brand-logo-text">SONUS <span class="model-num">DS-200</span></div>
+        <div class="plate-subtitle">ACOUSTIC RETRIEVAL WORKSTATION · MSMARCO-XI</div>
       </div>
-      <div>
-        <p class="masthead__strap">voice retrieval instrument</p>
-        <h1>Sonus</h1>
-      </div>
+      <div class="screw-head" aria-hidden="true"></div>
     </div>
-    <div class="masthead__meta">
-      <div class="status" role="status" aria-live="polite">
-        <span class="dot" id="statusDot"></span>
-        <span id="statusText">connecting…</span>
+
+    <div class="rack-status-unit">
+      <div class="led-indicator-group">
+        <span class="led-dot" id="statusDot"></span>
+        <span class="led-label" id="statusText">NODE CONNECTING...</span>
       </div>
-      <p class="meta-line" id="meta">manifest loading…</p>
+      <div class="lcd-manifest-screen" id="meta">
+        <span class="lcd-dim">SYSTEM:</span> INITIALIZING MANIFEST...
+      </div>
     </div>
   </header>
 
-  <main class="console">
-    <section class="console-stage panel">
-      <div class="console-stage__copy">
-        <h2>Ask by voice. Watch the pipeline. Trust only what the corpus can prove.</h2>
-        <p class="lede">
-          Sonus listens, retrieves, and answers with visible evidence. Nothing in this
-          surface invents latency, citations, confidence, or connection state.
-        </p>
+  <!-- Main Workstation Deck -->
+  <main class="console-deck">
+    <!-- Section 1: Keypad Preset & Command Sequence Programmer -->
+    <section class="deck-module module-programmer">
+      <div class="module-header">
+        <span class="module-title">MODULE 01 // QUERY PROGRAMMER</span>
+        <span class="module-id">PROMPT-BANK</span>
+      </div>
 
-        <form id="askForm" class="composer">
-          <label class="composer__label" for="q">Type a multilingual question</label>
-          <div class="composer__row">
-            <input id="q" type="text" autocomplete="off" spellcheck="false"
-                   placeholder="Ask in Hindi, Tamil, Telugu, Bengali or English…"
-                   aria-label="Type your question" />
-            <button type="submit" id="askBtn">Query</button>
-          </div>
+      <div class="composer-programmer">
+        <label class="programmer-label" for="q">
+          <span>SEQUENCE INPUT BUFFER</span>
+          <span class="led-chip" id="langChip">MULTILINGUAL</span>
+        </label>
+        <form id="askForm" class="programmer-form">
+          <input id="q" type="text" autocomplete="off" spellcheck="false"
+                 placeholder="TYPE PROMPT OR PRESS PRESET KEYPAD BELOW..."
+                 aria-label="Input prompt sequence" />
+          <button type="submit" id="askBtn" class="key-button key-orange">
+            <span class="key-top">EXECUTE</span>
+            <span class="key-shadow"></span>
+          </button>
         </form>
-
-        <section class="samples" aria-labelledby="samplesTitle">
-          <div class="samples__head">
-            <h3 id="samplesTitle">Questions this corpus can answer</h3>
-            <p class="samples__note">
-              Verified against the live index — each one returns a cited answer.
-            </p>
-          </div>
-          <div class="samples__tabs" id="sampleTabs" role="tablist"
-               aria-label="Question language"></div>
-          <div class="chips" id="chips" role="tabpanel" aria-live="polite"></div>
-        </section>
-
-        <div class="trace-card">
-          <div class="trace-card__head">
-            <h3>Query trace</h3>
-            <span class="trace-card__status" id="stateLabel">idle</span>
-          </div>
-          <p class="trace-card__detail" id="stateDetail">Hold <kbd>space</kbd> or use the mic to start.</p>
-          <div id="transcript" class="transcript">
-            <p class="placeholder">The captured transcript appears here after speech recognition.</p>
-          </div>
-        </div>
       </div>
 
-      <div class="console-stage__core">
-        <div class="voice-core" aria-label="Voice activity core">
-          <canvas id="core" class="voice-core__canvas" width="640" height="640" aria-hidden="true"></canvas>
-          <div class="voice-core__overlay">
-            <button id="micBtn" class="mic" aria-label="Hold to speak, or press space">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z"/><path d="M19 11a7 7 0 0 1-14 0M12 18v4"/></svg>
-            </button>
-            <p class="voice-core__hint" id="micHint">hold <kbd>space</kbd> or press the mic</p>
-          </div>
+      <div class="preset-keypad-section" aria-labelledby="samplesTitle">
+        <div class="keypad-header">
+          <h3 id="samplesTitle" class="keypad-title">PRESET PROMPT KEYPADS</h3>
+          <span class="keypad-sub">SELECT VERIFIED DEMO OR REFUSAL TEST</span>
         </div>
-        <canvas id="wave" class="wave" width="900" height="120" aria-hidden="true"></canvas>
+        <div class="keypad-selector-tabs" id="sampleTabs" role="tablist" aria-label="Keypad language tabs"></div>
+        <div class="keypad-grid" id="chips" role="tabpanel" aria-live="polite"></div>
       </div>
-
-      <aside class="console-stage__rail">
-        <section class="rail-card">
-          <div class="rail-card__head">
-            <h3 id="hudTitle">Latency instrument</h3>
-            <div class="total"><span id="totalMs">—</span><small>ms</small></div>
-          </div>
-          <div class="hud" id="hud" role="img" aria-label="Per-stage latency breakdown">
-            <div class="track" id="track"></div>
-            <div class="budget" style="left:100%"><span>200ms budget</span></div>
-          </div>
-          <ul class="legend" id="legend"></ul>
-          <p class="hud-note" id="hudNote">server pipeline · excludes network + speech recognition</p>
-        </section>
-
-        <section class="rail-card">
-          <div class="rail-card__head">
-            <h3>Run controls</h3>
-            <span class="rail-card__tag">live contract</span>
-          </div>
-          <div class="ctrl-grid">
-            <label>Mode
-              <select id="mode">
-                <option value="composed" selected>composed · grounded answer</option>
-                <option value="strict">extractive · raw passage span</option>
-              </select>
-            </label>
-            <label>Top-K
-              <input id="topk" type="number" min="1" max="10" value="3" />
-            </label>
-            <label class="toggle">
-              <input id="xling" type="checkbox" checked />
-              <span class="toggle__track"></span>
-              <span>cross-lingual retrieval</span>
-            </label>
-            <label class="toggle">
-              <input id="cache" type="checkbox" checked />
-              <span class="toggle__track"></span>
-              <span>semantic cache</span>
-            </label>
-          </div>
-        </section>
-
-        <section class="rail-card rail-card--compact">
-          <div class="rail-card__head">
-            <h3>Operating note</h3>
-          </div>
-          <p class="rail-card__copy">
-            The fast path is the source of truth. If quality mode succeeds, the refined
-            answer crossfades in after the grounded extractive answer lands.
-          </p>
-        </section>
-      </aside>
     </section>
 
-    <section class="dock">
-      <article class="panel answer-panel" aria-live="polite" aria-atomic="false">
-        <div class="panel-head">
-          <h2>Grounded answer</h2>
-          <span class="panel-head__meta">real citations only</span>
-        </div>
-        <div id="answerBox" class="answer-box empty">
-          <p class="placeholder">Ask something to see a grounded answer with citations.</p>
-        </div>
-      </article>
+    <!-- Section 2: CRT Oscilloscope & Mic Station -->
+    <section class="deck-module module-oscilloscope">
+      <div class="module-header">
+        <span class="module-title">MODULE 02 // CRT VECTOR SCOPE</span>
+        <span class="module-id">PCM-48KHZ</span>
+      </div>
 
-      <article class="panel sources-panel">
-        <div class="panel-head">
-          <h2>Evidence dock</h2>
-          <span class="panel-head__meta">retrieved passages</span>
+      <div class="crt-screen-housing">
+        <div class="crt-glare" aria-hidden="true"></div>
+        <div class="crt-scanlines" aria-hidden="true"></div>
+        
+        <div class="signal-chamber" aria-label="CRT Vector Scope Acoustic Visualizer">
+          <canvas id="core" class="signal-chamber__canvas" width="720" height="720" aria-hidden="true"></canvas>
+          
+          <div class="signal-chamber__overlay">
+            <button id="micBtn" class="key-button key-talk mic-trigger" aria-label="Hold to capture voice audio">
+              <div class="key-talk-inner">
+                <svg viewBox="0 0 24 24" class="mic-svg" aria-hidden="true"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z"/><path d="M19 11a7 7 0 0 1-14 0M12 18v4"/></svg>
+                <span class="talk-text">TALK</span>
+              </div>
+              <span class="key-shadow"></span>
+            </button>
+            <div class="mic-hint-tag" id="micHint">HOLD <kbd>SPACE</kbd> OR PRESS KEY</div>
+          </div>
         </div>
-        <div id="sources" class="sources">
-          <p class="placeholder">Retrieved passages appear here after a query runs.</p>
+      </div>
+
+      <div class="scope-waveform-container">
+        <div class="crt-scanlines" aria-hidden="true"></div>
+        <canvas id="wave" class="scope-canvas" width="980" height="120" aria-hidden="true"></canvas>
+      </div>
+    </section>
+
+    <!-- Section 3: Hardware Latency Telemetry & Patch Controls -->
+    <section class="deck-module module-telemetry">
+      <div class="module-header">
+        <span class="module-title">MODULE 03 // LATENCY HARNESS</span>
+        <span class="module-id">TIMING-HUB</span>
+      </div>
+
+      <div class="digital-readout-unit">
+        <div class="readout-label">LATENCY TIMING</div>
+        <div class="digital-7seg-hero">
+          <span id="totalMs">000.00</span><span class="seg-unit">MS</span>
         </div>
-      </article>
+        <div class="budget-status-bar">
+          <span class="budget-led">● 200MS BUDGET CONTRACT</span>
+        </div>
+      </div>
+
+      <div class="vu-meter-panel">
+        <div class="vu-title">STAGE TIMING BREAKDOWN</div>
+        <div class="hud-bar-housing" id="hud" role="img" aria-label="Latency timing Breakdown">
+          <div class="track" id="track"></div>
+          <div class="budget" style="left:100%"><span>BUDGET</span></div>
+        </div>
+        <ul class="vu-legend-list" id="legend"></ul>
+        <p class="hud-note" id="hudNote">SERVER TIMINGS VIA RESPONSE HEADERS</p>
+      </div>
+
+      <div class="patch-panel">
+        <div class="vu-title">PIPELINE PARAMETERS</div>
+        <div class="patch-controls-grid">
+          <div class="patch-group">
+            <label for="mode">ANSWER LANE</label>
+            <select id="mode" class="hardware-select">
+              <option value="composed" selected>COMPOSED · GROUNDED ANSWER</option>
+              <option value="strict">STRICT · EXTRACTIVE SPAN</option>
+            </select>
+          </div>
+
+          <div class="patch-group">
+            <label for="topk">TOP-K VECTORS</label>
+            <input id="topk" type="number" min="1" max="10" value="3" class="hardware-input" />
+          </div>
+
+          <div class="patch-toggles">
+            <label class="rocker-switch">
+              <input id="xling" type="checkbox" checked />
+              <span class="rocker-body"></span>
+              <span class="rocker-label">CROSS-LINGUAL</span>
+            </label>
+            <label class="rocker-switch">
+              <input id="cache" type="checkbox" checked />
+              <span class="rocker-body"></span>
+              <span class="rocker-label">VECTOR CACHE</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="harness-table-block">
+        <div class="vu-title">BENCHMARK HARNESS LEDGER</div>
+        <div id="benchSummary" class="bench-summary-line"></div>
+        <div class="table-container">
+          <table class="bench-table" id="benchTable">
+            <thead>
+              <tr>
+                <th scope="col">STAGE</th>
+                <th scope="col">AVG</th>
+                <th scope="col">P50</th>
+                <th scope="col">P95</th>
+                <th scope="col">P99</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
     </section>
   </main>
 
-  <footer class="footer">
-    <span>MSMARCO-XI · AI4Bharat</span>
-    <span>frontend rebuild for Sonus</span>
+  <!-- Bottom Rack: Terminal Trace Monitor & Grounded Answer Printout -->
+  <footer class="console-output-rack">
+    <!-- Terminal Execution Log -->
+    <div class="output-module module-terminal">
+      <div class="module-header">
+        <span class="module-title">CRT TERMINAL // EXECUTION TRACE</span>
+        <span class="terminal-status-chip" id="stateLabel">IDLE</span>
+      </div>
+      <div class="crt-screen-housing terminal-crt">
+        <div class="crt-scanlines" aria-hidden="true"></div>
+        <p class="trace-status-text" id="stateDetail">SYSTEM READY FOR QUERY INPUT.</p>
+        <div class="trace-meta-line" id="traceMeta">
+          <span class="lcd-dim">EXECUTION METADATA PENDING...</span>
+        </div>
+        <div id="transcript" class="transcript-display">
+          <p class="lcd-dim">AUDIO TRANSCRIPT PENDING...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grounded Answer LCD Printout -->
+    <div class="output-module module-answer">
+      <div class="module-header">
+        <span class="module-title">GROUNDED ANSWER // PRINTED TELEMETRY</span>
+        <span class="terminal-status-chip chip-amber">VERIFIED EVIDENCE ONLY</span>
+      </div>
+      <div class="answer-lcd-housing">
+        <div id="answerBox" class="answer-box-inner empty">
+          <p class="lcd-dim">EXECUTE PROMPT TO VIEW GROUNDED ANSWER AND REFUSAL TELEMETRY.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Evidence Dock Passages -->
+    <div class="output-module module-evidence">
+      <div class="module-header">
+        <span class="module-title">EVIDENCE DOCK // VECTOR PASSAGES</span>
+        <span class="terminal-status-chip chip-green">MSMARCO-XI CORPUS</span>
+      </div>
+      <div id="sources" class="sources-dock-inner empty">
+        <p class="lcd-dim">RETRIEVED VECTOR PASSAGES WILL BE DOCKED HERE.</p>
+      </div>
+    </div>
   </footer>
 </div>
 
