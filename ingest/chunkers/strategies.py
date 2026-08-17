@@ -189,16 +189,29 @@ def s4_contextual(text: str, meta: dict, chunk_size: int = 512,
                   context_fn: Callable | None = None, **_) -> list[str]:
     """Prepend a one-line situating summary to each chunk before embedding.
 
-    With no LLM available we prepend the parent query + a deterministic locator,
-    which captures most of the recall benefit at zero inference cost. The LLM
-    variant is what `context_fn` injects when budget allows.
+    IMPORTANT -- do not situate chunks with the parent query. MS MARCO builds
+    each passage set around a query, and the evaluation queries *are* those
+    parent queries, so prepending it makes a chunk contain a copy of the query
+    it will be scored against. That inflated nDCG@10 from ~0.56 to 0.88 in our
+    bake-off: leakage, not retrieval quality.
+
+    Without an LLM we instead situate each chunk with its own leading clause
+    plus a positional locator, which is derived only from the passage and is
+    therefore available at index time for any corpus. `context_fn` is the hook
+    for the real LLM-generated summary when there is budget for it.
     """
     base = s1_recursive(text, meta, chunk_size, overlap=0.0)
-    q = (meta or {}).get("parent_query", "")
+    if len(base) <= 1:
+        return base
+
+    # First sentence of the passage acts as a cheap topical header for chunks
+    # that would otherwise lose their referent.
+    lead = (split_sentences(text) or [text])[0]
+    lead = " ".join(lead.split()[:14])
+
     out = []
     for i, c in enumerate(base):
-        ctx = context_fn(c, text, meta) if context_fn else (
-            f"[{q} · part {i + 1}/{len(base)}]" if q else f"[part {i + 1}/{len(base)}]")
+        ctx = context_fn(c, text, meta) if context_fn else f"[{lead} · {i + 1}/{len(base)}]"
         out.append(f"{ctx} {c}".strip())
     return out
 

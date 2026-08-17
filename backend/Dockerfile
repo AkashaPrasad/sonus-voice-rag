@@ -22,7 +22,7 @@ ARG CORPUS_PROFILE=dev
 ARG CORPUS_LANGS=hi,ta,te,bn
 ARG CORPUS_ROWS=1000
 RUN python ingest/build_index.py --profile $CORPUS_PROFILE --langs $CORPUS_LANGS \
-      --rows $CORPUS_ROWS --strategy s1_recursive --out /app/index
+      --rows $CORPUS_ROWS --strategy s5_hierarchical --out /app/index
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s \
   CMD python -c "import urllib.request,os;urllib.request.urlopen(f'http://127.0.0.1:{os.getenv(\"PORT\",8000)}/health')"
