@@ -64,9 +64,15 @@ const STATE_COPY = {
   },
 };
 
+/* Verified against the deployed index: each of these retrieves a passage that
+   actually answers it. The last one is deliberately unanswerable so the
+   abstention state is one click away. */
 const FALLBACK_CHIPS = [
-  { query: "हिरलूम टमाटर का क्या अर्थ है", lang: "hi" },
+  { query: "what is photosynthesis", lang: "en" },
   { query: "what is a corporation", lang: "en" },
+  { query: "green tea health benefits", lang: "en" },
+  { query: "हरी चाय के फायदे", lang: "hi" },
+  { query: "कॉर्पोरेशन क्या है", lang: "hi" },
   { query: "what is my bank balance", lang: "en" },
 ];
 
@@ -399,16 +405,10 @@ async function askStream(body) {
 }
 
 async function loadChips() {
-  let items = FALLBACK_CHIPS;
-  try {
-    const r = await fetch(`${API}/sample-queries`);
-    if (r.ok) {
-      const d = await r.json();
-      if (d.queries?.length) items = d.queries.slice(0, 5).concat(FALLBACK_CHIPS[2]);
-    }
-  } catch {
-    // fall back to the built-ins
-  }
+  /* Use the curated list rather than /sample-queries. That endpoint returns
+     arbitrary corpus queries, which are often obscure enough that a first-time
+     visitor's first click lands on an abstention and the demo looks broken. */
+  const items = FALLBACK_CHIPS;
 
   el.chips.innerHTML = items.map((item) => (
     `<button class="chip" type="button" data-q="${escapeHTML(item.query)}">${escapeHTML(item.query)}</button>`
