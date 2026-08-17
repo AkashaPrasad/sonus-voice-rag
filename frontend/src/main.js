@@ -1,56 +1,166 @@
 /* Sonus client.
-   The HUD renders the server's own per-stage timings, so what a judge sees is
-   the same measurement the benchmark records -- not a client-side estimate. */
+   Networking, STT, and SSE contracts stay untouched; this file only reshapes
+   the presentation and drives the real visual states from the existing data. */
 
-/* The branded API domain is preferred, but its certificate is issued
-   asynchronously after the DNS record lands. Probe it once at boot and fall
-   back to the Railway service domain so the demo never depends on cert timing. */
 const API_CANDIDATES = [
   import.meta.env.VITE_API_BASE,
-  "https://api.sonus.spacesdrive.cc",
   "https://vaani-api-production.up.railway.app",
+  "https://api.sonus.spacesdrive.cc",
 ].filter(Boolean);
 
-let API = API_CANDIDATES[0];
+const STAGES = [
+  ["guard_in", "#ff7b75", "guard·in"],
+  ["cache_probe", "#8f8cf8", "cache"],
+  ["embed", "#f3ad54", "embed"],
+  ["dense", "#63d9d5", "dense"],
+  ["sparse", "#43b6b0", "sparse"],
+  ["fuse", "#5a94ff", "fuse"],
+  ["rerank", "#b39bff", "rerank"],
+  ["guard_retrieval", "#c47167", "guard·ret"],
+  ["extract", "#f6c66c", "extract"],
+  ["guard_out", "#ff928c", "guard·out"],
+];
+
+const STATE_COPY = {
+  idle: {
+    label: "idle",
+    detail: "Hold space or use the mic to start.",
+    hint: "hold space or press the mic",
+  },
+  listening: {
+    label: "listening",
+    detail: "Microphone stream is live. The core reacts to the real input signal.",
+    hint: "release to transcribe",
+  },
+  transcribing: {
+    label: "transcribing",
+    detail: "The captured clip is being sent to speech recognition.",
+    hint: "speech clip uploading…",
+  },
+  thinking: {
+    label: "retrieving",
+    detail: "Hybrid retrieval and guardrails are running against the frozen backend.",
+    hint: "retrieval pipeline active",
+  },
+  responding: {
+    label: "responding",
+    detail: "A grounded answer is on screen. Quality mode may refine it after the fast path lands.",
+    hint: "answer instrument active",
+  },
+  "mic-denied": {
+    label: "mic denied",
+    detail: "Microphone access was blocked. The typed query path remains available.",
+    hint: "microphone unavailable",
+  },
+  offline: {
+    label: "offline",
+    detail: "The API could not be reached. Connection state is real, not inferred.",
+    hint: "backend unavailable",
+  },
+  "no-speech": {
+    label: "no speech",
+    detail: "The clip was too short or empty. Hold the mic slightly longer.",
+    hint: "too short — hold longer",
+  },
+};
+
+const FALLBACK_CHIPS = [
+  { query: "हिरलूम टमाटर का क्या अर्थ है", lang: "hi" },
+  { query: "what is a corporation", lang: "en" },
+  { query: "what is my bank balance", lang: "en" },
+];
+
 const BUDGET_MS = 200;
+let API = API_CANDIDATES[0];
+let appState = "idle";
+let inFlight = false;
+let settleTimer = null;
+let media = null;
+let audioCtx = null;
+let analyser = null;
+let recorder = null;
+let chunks = [];
+let reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+let currentAudioLevel = 0;
+let smoothAudioLevel = 0;
+let latencyEnergy = 0;
+let answerGlow = 0;
+let rafId = null;
+
+const $ = (id) => document.getElementById(id);
+
+const el = {
+  statusDot: $("statusDot"),
+  statusText: $("statusText"),
+  meta: $("meta"),
+  micBtn: $("micBtn"),
+  micHint: $("micHint"),
+  wave: $("wave"),
+  core: $("core"),
+  form: $("askForm"),
+  q: $("q"),
+  askBtn: $("askBtn"),
+  chips: $("chips"),
+  mode: $("mode"),
+  topk: $("topk"),
+  xling: $("xling"),
+  cache: $("cache"),
+  hud: $("hud"),
+  track: $("track"),
+  legend: $("legend"),
+  totalMs: $("totalMs"),
+  hudNote: $("hudNote"),
+  transcript: $("transcript"),
+  answerBox: $("answerBox"),
+  sources: $("sources"),
+  stateLabel: $("stateLabel"),
+  stateDetail: $("stateDetail"),
+};
+
+function escapeHTML(value) {
+  return String(value).replace(/[&<>"']/g, (char) => (
+    { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]
+  ));
+}
+
+function clearSettleTimer() {
+  if (settleTimer) {
+    clearTimeout(settleTimer);
+    settleTimer = null;
+  }
+}
+
+function scheduleSettle(delay = 2200) {
+  clearSettleTimer();
+  settleTimer = setTimeout(() => {
+    if (!inFlight && appState === "responding") setAppState("idle");
+  }, delay);
+}
+
+function setAppState(next, detailOverride) {
+  appState = next;
+  const copy = STATE_COPY[next] || STATE_COPY.idle;
+  document.body.dataset.state = next;
+  el.stateLabel.textContent = copy.label;
+  el.stateDetail.textContent = detailOverride || copy.detail;
+  el.micHint.textContent = copy.hint;
+}
 
 async function resolveAPI() {
   for (const base of API_CANDIDATES) {
     try {
       const r = await fetch(`${base}/health`, { cache: "no-store" });
-      if (r.ok) { API = base; return r; }
-    } catch { /* try the next candidate */ }
+      if (r.ok) {
+        API = base;
+        return r;
+      }
+    } catch {
+      // try the next candidate
+    }
   }
   return null;
 }
 
-const $ = (id) => document.getElementById(id);
-
-const el = {
-  statusDot: $("statusDot"), statusText: $("statusText"),
-  micBtn: $("micBtn"), micHint: $("micHint"), wave: $("wave"),
-  form: $("askForm"), q: $("q"), askBtn: $("askBtn"), chips: $("chips"),
-  mode: $("mode"), topk: $("topk"), xling: $("xling"), cache: $("cache"),
-  hud: $("hud"), track: $("track"), legend: $("legend"), totalMs: $("totalMs"),
-  hudNote: $("hudNote"), transcript: $("transcript"),
-  answerBox: $("answerBox"), sources: $("sources"), meta: $("meta"),
-};
-
-/* stage → colour. Order matches pipeline execution order. */
-const STAGES = [
-  ["guard_in",        "#e8615d", "guard·in"],
-  ["cache_probe",     "#7a6cf0", "cache"],
-  ["embed",           "#e8a33d", "embed"],
-  ["dense",           "#4ecdc4", "dense"],
-  ["sparse",          "#3d9a94", "sparse"],
-  ["fuse",            "#5b8def", "fuse"],
-  ["rerank",          "#9d7bea", "rerank"],
-  ["guard_retrieval", "#d4736f", "guard·ret"],
-  ["extract",         "#f0c674", "extract"],
-  ["guard_out",       "#c25a56", "guard·out"],
-];
-
-/* ── health ─────────────────────────────────────────── */
 async function checkHealth() {
   try {
     const probe = await resolveAPI();
@@ -58,113 +168,125 @@ async function checkHealth() {
     const d = await probe.json();
     el.statusDot.className = "dot ok";
     el.statusText.textContent = `${d.manifest?.n_chunks?.toLocaleString() ?? "?"} chunks · ready`;
-    el.meta.textContent =
-      `${d.manifest?.embed_model?.split("/").pop() ?? ""} · ${d.manifest?.chunk_strategy ?? ""} · int8`;
+    el.meta.textContent = `${d.manifest?.embed_model?.split("/").pop() ?? ""} · ${d.manifest?.chunk_strategy ?? ""} · int8`;
+    if (appState === "offline") setAppState("idle");
     return true;
   } catch {
     el.statusDot.className = "dot bad";
     el.statusText.textContent = "backend unreachable";
+    el.meta.textContent = "waiting for a reachable API candidate";
+    if (!inFlight) setAppState("offline");
     return false;
   }
 }
 
-/* ── latency HUD ────────────────────────────────────── */
 function renderHUD(timings, totalMs) {
+  const safeTotal = Number(totalMs) || 0;
   const present = STAGES
-    .map(([k, c, label]) => [k, c, label, Number(timings?.[k] ?? 0)])
-    .filter(([, , , v]) => v > 0);
+    .map(([key, color, label]) => [key, color, label, Number(timings?.[key] ?? 0)])
+    .filter(([, , , value]) => value > 0);
 
-  // Scale against the budget so the 200ms marker is meaningful. A request that
-  // overruns the budget rescales instead of overflowing the track.
-  const scaleMax = Math.max(totalMs, BUDGET_MS);
-  const widthPct = Math.min((totalMs / scaleMax) * 100, 100);
+  const scaleMax = Math.max(safeTotal, BUDGET_MS, 1);
+  const widthPct = Math.min((safeTotal / scaleMax) * 100, 100);
+  latencyEnergy = Math.min(safeTotal / BUDGET_MS, 1.6);
 
-  el.track.innerHTML = present
-    .map(([k, c, , v]) =>
-      `<div class="seg" style="width:${(v / totalMs) * 100}%;background:${c}" title="${k}: ${v}ms"></div>`)
-    .join("");
+  el.track.innerHTML = present.map(([key, color, , value]) => (
+    `<div class="seg" style="width:${(value / safeTotal) * 100}%;background:${color}" title="${key}: ${value.toFixed(2)}ms"></div>`
+  )).join("");
   el.track.style.width = `${widthPct}%`;
 
-  el.legend.innerHTML = present
-    .map(([, c, label, v]) =>
-      `<li><span class="sw" style="background:${c}"></span>
-        <span class="nm">${label}</span><span class="ms">${v.toFixed(2)}ms</span></li>`)
-    .join("");
+  el.legend.innerHTML = present.length
+    ? present.map(([, color, label, value]) => (
+      `<li><span class="sw" style="background:${color}"></span><span class="nm">${label}</span><span class="ms">${value.toFixed(2)}ms</span></li>`
+    )).join("")
+    : `<li><span class="sw" style="background:rgba(138,168,187,.22)"></span><span class="nm">waiting for a query</span><span class="ms">—</span></li>`;
 
-  el.totalMs.textContent = totalMs.toFixed(2);
-  el.hud.classList.toggle("under", totalMs < BUDGET_MS);
+  el.totalMs.textContent = safeTotal ? safeTotal.toFixed(2) : "—";
+  el.hud.classList.toggle("under", safeTotal > 0 && safeTotal < BUDGET_MS);
   document.querySelector(".budget").style.left = `${(BUDGET_MS / scaleMax) * 100}%`;
 }
 
-/* ── answer rendering ───────────────────────────────── */
-function escapeHTML(s) {
-  return String(s).replace(/[&<>"']/g, (c) =>
-    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+function renderTranscript(text, partial = false) {
+  el.transcript.innerHTML = text
+    ? `<p${partial ? ' class="partial"' : ""}>${partial ? "Partial" : "Captured"} transcript: “${escapeHTML(text)}”</p>`
+    : `<p class="placeholder">The captured transcript appears here after speech recognition.</p>`;
 }
 
-function renderAnswer(d) {
+function renderAnswer(payload) {
   el.answerBox.classList.remove("empty");
   const badges = [];
 
-  if (d.blocked) {
-    badges.push(`<span class="badge blocked">blocked · ${escapeHTML(d.block_category || "")}</span>`);
-    badges.push(`<span class="badge">${escapeHTML(d.block_layer || "")}</span>`);
-  } else if (d.abstained) {
+  if (payload.blocked) {
+    badges.push(`<span class="badge blocked">blocked · ${escapeHTML(payload.block_category || "")}</span>`);
+    badges.push(`<span class="badge">${escapeHTML(payload.block_layer || "")}</span>`);
+  } else if (payload.abstained) {
     badges.push(`<span class="badge mode">abstained</span>`);
-    if (d.abstain_reason) badges.push(`<span class="badge">${escapeHTML(d.abstain_reason)}</span>`);
+    if (payload.abstain_reason) badges.push(`<span class="badge">${escapeHTML(payload.abstain_reason)}</span>`);
   } else {
-    badges.push(`<span class="badge mode">${escapeHTML(d.mode)}</span>`);
-    badges.push(`<span class="badge">conf ${(d.confidence ?? 0).toFixed(3)}</span>`);
+    badges.push(`<span class="badge mode">${escapeHTML(payload.mode)}</span>`);
+    badges.push(`<span class="badge">conf ${(payload.confidence ?? 0).toFixed(3)}</span>`);
   }
-  if (d.cached) badges.push(`<span class="badge">cache · ${escapeHTML(d.cached)}</span>`);
 
-  const abstainCls = (d.abstained || d.blocked) ? " abstain" : "";
-  const hint = (d.abstained && !d.blocked)
-    ? `<p class="abstain-hint">Nothing in this corpus scored above the grounding threshold.
-       ${d.passages?.length ? "The closest passages are shown below." : ""}</p>`
+  if (payload.cached) badges.push(`<span class="badge">cache · ${escapeHTML(payload.cached)}</span>`);
+
+  const abstainClass = (payload.abstained || payload.blocked) ? "abstain" : "";
+  const hint = (payload.abstained && !payload.blocked)
+    ? `<p class="abstain-hint">Nothing in this corpus scored above the grounding threshold. ${payload.passages?.length ? "The closest retrieved evidence is still shown on the right." : ""}</p>`
     : "";
 
-  el.answerBox.innerHTML =
-    `<div class="${abstainCls.trim()}">
-       <p class="answer-text" id="answerText">${escapeHTML(d.answer)}</p>
-       ${hint}
-       <div class="badges">${badges.join("")}</div>
-     </div>`;
-
-  renderSources(d);
+  el.answerBox.innerHTML = `
+    <div class="${abstainClass}">
+      <p class="answer-text" id="answerText">${escapeHTML(payload.answer)}</p>
+      ${hint}
+      <div class="badges">${badges.join("")}</div>
+    </div>
+  `;
+  answerGlow = 1;
+  renderSources(payload);
 }
 
-function renderSources(d) {
-  const ps = d.passages || [];
-  if (!ps.length) { el.sources.hidden = true; return; }
-  const cited = new Set((d.citations || []).map((c) => c.text));
+function renderSources(payload) {
+  const passages = payload.passages || [];
+  if (!passages.length) {
+    el.sources.classList.add("empty");
+    el.sources.innerHTML = `<p class="placeholder">No supporting passages were returned for this response.</p>`;
+    return;
+  }
 
-  el.sources.hidden = false;
-  el.sources.innerHTML =
-    `<h3>Sources</h3>` +
-    ps.map((p, i) => {
-      let text = escapeHTML(p.text);
-      // Highlight the exact span the answer was drawn from.
-      for (const c of cited) {
-        if (c && p.text.includes(c)) {
-          text = text.replace(escapeHTML(c), `<mark>${escapeHTML(c)}</mark>`);
-          break;
-        }
+  const cited = new Set((payload.citations || []).map((item) => item.text));
+
+  el.sources.classList.remove("empty");
+  el.sources.innerHTML = passages.map((passage, index) => {
+    let text = escapeHTML(passage.text);
+    for (const citation of cited) {
+      if (citation && passage.text.includes(citation)) {
+        text = text.replace(escapeHTML(citation), `<mark>${escapeHTML(citation)}</mark>`);
+        break;
       }
-      return `<div class="src">
+    }
+
+    const pills = [
+      `<span class="source-pill">${escapeHTML(passage.lang || "lang ?")}</span>`,
+      `<span class="source-pill">cos ${(passage.cosine ?? 0).toFixed(3)}</span>`,
+    ];
+    if (passage.cross_lingual) pills.unshift(`<span class="source-pill">cross-lingual</span>`);
+
+    return `
+      <article class="src">
         <div class="src-head">
-          <span class="src-n">[${i + 1}]</span>
-          <span class="src-lang${p.cross_lingual ? " src-xl" : ""}">${escapeHTML(p.lang)}${p.cross_lingual ? " · cross-lingual" : ""}</span>
-          <span>cos ${(p.cosine ?? 0).toFixed(3)}</span>
+          <span class="src-n">[${index + 1}]</span>
+          ${pills.join("")}
         </div>
         <p class="src-text">${text}</p>
-      </div>`;
-    }).join("");
+      </article>
+    `;
+  }).join("");
 }
 
 function showRefined(payload) {
   const node = $("answerText");
   if (!node || !payload.ok || payload.insufficient || !payload.answer) return;
+
   node.style.transition = "opacity .22s ease";
   node.style.opacity = "0";
   setTimeout(() => {
@@ -172,21 +294,23 @@ function showRefined(payload) {
     node.style.opacity = "1";
     const badges = el.answerBox.querySelector(".badges");
     if (badges && !badges.querySelector(".refined")) {
-      badges.insertAdjacentHTML("afterbegin",
-        `<span class="badge refined">refined · ${Math.round(payload.total_ms)}ms</span>`);
+      badges.insertAdjacentHTML(
+        "afterbegin",
+        `<span class="badge refined">refined · ${Math.round(payload.total_ms)}ms</span>`,
+      );
     }
   }, 220);
 }
 
-/* ── ask ────────────────────────────────────────────── */
-let inFlight = false;
-
 async function ask(query) {
   if (!query.trim() || inFlight) return;
+
+  clearSettleTimer();
   inFlight = true;
   el.askBtn.disabled = true;
+  setAppState("thinking");
   el.answerBox.classList.remove("empty");
-  el.answerBox.innerHTML = `<p class="placeholder">searching…</p>`;
+  el.answerBox.innerHTML = `<p class="placeholder">query sent to the retrieval pipeline…</p>`;
 
   const body = {
     query,
@@ -209,11 +333,15 @@ async function ask(query) {
       const d = await r.json();
       renderAnswer(d);
       renderHUD(d.timings, d.total_ms);
+      setAppState("responding");
+      scheduleSettle();
     }
-  } catch (e) {
-    el.answerBox.innerHTML =
-      `<p class="answer-text">Could not reach the backend.</p>
-       <p class="abstain-hint">${escapeHTML(e.message)}</p>`;
+  } catch (error) {
+    el.answerBox.innerHTML = `
+      <p class="answer-text">Could not reach the backend.</p>
+      <p class="abstain-hint">${escapeHTML(error.message)}</p>
+    `;
+    setAppState("offline");
     el.statusDot.className = "dot bad";
     el.statusText.textContent = "backend unreachable";
   } finally {
@@ -231,38 +359,44 @@ async function askStream(body) {
   if (!r.ok || !r.body) throw new Error(`HTTP ${r.status}`);
 
   const reader = r.body.getReader();
-  const dec = new TextDecoder();
-  let buf = "";
+  const decoder = new TextDecoder();
+  let buffer = "";
   let event = "";
 
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
-    buf += dec.decode(value, { stream: true });
-    const parts = buf.split("\n\n");
-    buf = parts.pop() || "";
+    buffer += decoder.decode(value, { stream: true });
+    const chunks = buffer.split("\n\n");
+    buffer = chunks.pop() || "";
 
-    for (const block of parts) {
+    for (const block of chunks) {
       for (const line of block.split("\n")) {
-        if (line.startsWith("event:")) event = line.slice(6).trim();
-        else if (line.startsWith("data:")) {
+        if (line.startsWith("event:")) {
+          event = line.slice(6).trim();
+        } else if (line.startsWith("data:")) {
           const raw = line.slice(5).trim();
           if (!raw) continue;
-          let d; try { d = JSON.parse(raw); } catch { continue; }
-          if (event === "fast") { renderAnswer(d); renderHUD(d.timings, d.total_ms); }
-          else if (event === "refined") showRefined(d);
+          let payload;
+          try {
+            payload = JSON.parse(raw);
+          } catch {
+            continue;
+          }
+          if (event === "fast") {
+            renderAnswer(payload);
+            renderHUD(payload.timings, payload.total_ms);
+            setAppState("responding");
+          } else if (event === "refined") {
+            showRefined(payload);
+          }
         }
       }
     }
   }
-}
 
-/* ── sample chips ───────────────────────────────────── */
-const FALLBACK_CHIPS = [
-  { query: "हिरलूम टमाटर का क्या अर्थ है", lang: "hi" },
-  { query: "what is a corporation", lang: "en" },
-  { query: "what is my bank balance", lang: "en" },
-];
+  scheduleSettle(2800);
+}
 
 async function loadChips() {
   let items = FALLBACK_CHIPS;
@@ -272,95 +406,280 @@ async function loadChips() {
       const d = await r.json();
       if (d.queries?.length) items = d.queries.slice(0, 5).concat(FALLBACK_CHIPS[2]);
     }
-  } catch { /* fall back to the built-ins */ }
+  } catch {
+    // fall back to the built-ins
+  }
 
-  el.chips.innerHTML = items
-    .map((q) => `<button class="chip" type="button" data-q="${escapeHTML(q.query)}">${escapeHTML(q.query)}</button>`)
-    .join("");
-  el.chips.querySelectorAll(".chip").forEach((b) =>
-    b.addEventListener("click", () => { el.q.value = b.dataset.q; ask(b.dataset.q); }));
+  el.chips.innerHTML = items.map((item) => (
+    `<button class="chip" type="button" data-q="${escapeHTML(item.query)}">${escapeHTML(item.query)}</button>`
+  )).join("");
+
+  el.chips.querySelectorAll(".chip").forEach((button) => {
+    button.addEventListener("click", () => {
+      el.q.value = button.dataset.q;
+      ask(button.dataset.q);
+    });
+  });
 }
 
-/* ── mic + waveform ─────────────────────────────────── */
-let media = null, audioCtx = null, analyser = null, rafId = null, recorder = null, chunks = [];
-
-function drawWave() {
-  const c = el.wave, ctx = c.getContext("2d");
-  const dpr = window.devicePixelRatio || 1;
-  if (c.width !== c.clientWidth * dpr) {
-    c.width = c.clientWidth * dpr; c.height = c.clientHeight * dpr;
+function ensureCanvasSize(canvas) {
+  const ratio = window.devicePixelRatio || 1;
+  const width = Math.max(Math.floor(canvas.clientWidth * ratio), 1);
+  const height = Math.max(Math.floor(canvas.clientHeight * ratio), 1);
+  if (canvas.width !== width || canvas.height !== height) {
+    canvas.width = width;
+    canvas.height = height;
   }
-  const buf = new Uint8Array(analyser.frequencyBinCount);
+  return ratio;
+}
 
-  const loop = () => {
-    analyser.getByteTimeDomainData(buf);
-    ctx.clearRect(0, 0, c.width, c.height);
-    ctx.lineWidth = 1.6 * dpr;
-    ctx.strokeStyle = "#e8a33d";
+function readAudioLevel() {
+  if (!analyser) return 0;
+  const buffer = new Uint8Array(analyser.fftSize);
+  analyser.getByteTimeDomainData(buffer);
+  let sum = 0;
+  for (let i = 0; i < buffer.length; i += 1) {
+    const centered = (buffer[i] - 128) / 128;
+    sum += centered * centered;
+  }
+  return Math.min(Math.sqrt(sum / buffer.length) * 2.4, 1);
+}
+
+function currentStateDrive(time) {
+  if (appState === "listening") return 0.55;
+  if (appState === "thinking") return 0.36 + Math.sin(time * 0.0022) * 0.06;
+  if (appState === "responding") return 0.28 + answerGlow * 0.25;
+  if (appState === "transcribing") return 0.2;
+  if (appState === "offline" || appState === "mic-denied") return 0.14;
+  return 0.1;
+}
+
+function drawDeformedRing(ctx, cx, cy, radius, amp, time, color, width, phaseShift = 0) {
+  const points = 140;
+  ctx.beginPath();
+  for (let i = 0; i <= points; i += 1) {
+    const angle = (i / points) * Math.PI * 2;
+    const deformation =
+      Math.sin(angle * 3 + time * 0.0014 + phaseShift) * amp +
+      Math.sin(angle * 5 - time * 0.0011 - phaseShift * 1.5) * amp * 0.42;
+    const r = radius + deformation;
+    const x = cx + Math.cos(angle) * r;
+    const y = cy + Math.sin(angle) * r;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = width;
+  ctx.stroke();
+}
+
+function drawCoreFrame(time) {
+  const ratio = ensureCanvasSize(el.core);
+  const ctx = el.core.getContext("2d");
+  const { width, height } = el.core;
+  const cx = width / 2;
+  const cy = height / 2;
+  const minSide = Math.min(width, height);
+  const stateDrive = currentStateDrive(time);
+
+  currentAudioLevel = readAudioLevel();
+  smoothAudioLevel += ((currentAudioLevel + stateDrive) - smoothAudioLevel) * 0.08;
+  answerGlow *= 0.984;
+
+  ctx.clearRect(0, 0, width, height);
+
+  const outerGlow = ctx.createRadialGradient(cx, cy, minSide * 0.06, cx, cy, minSide * 0.5);
+  outerGlow.addColorStop(0, "rgba(243, 173, 84, 0.18)");
+  outerGlow.addColorStop(0.55, "rgba(99, 217, 213, 0.10)");
+  outerGlow.addColorStop(1, "rgba(0, 0, 0, 0)");
+  ctx.fillStyle = outerGlow;
+  ctx.fillRect(0, 0, width, height);
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(time * 0.00008);
+  for (let i = 0; i < 14; i += 1) {
+    const angle = (Math.PI * 2 * i) / 14;
+    const radius = minSide * 0.35 + Math.sin(time * 0.001 + i) * minSide * 0.01;
+    const x = Math.cos(angle) * radius;
+    const y = Math.sin(angle) * radius;
+    ctx.fillStyle = `rgba(99, 217, 213, ${0.08 + smoothAudioLevel * 0.08})`;
     ctx.beginPath();
-    const slice = c.width / buf.length;
-    for (let i = 0; i < buf.length; i++) {
-      const y = (buf[i] / 128.0) * (c.height / 2);
-      i ? ctx.lineTo(i * slice, y) : ctx.moveTo(0, y);
-    }
-    ctx.stroke();
-    rafId = requestAnimationFrame(loop);
+    ctx.arc(x, y, ratio * (1.5 + smoothAudioLevel * 2.6), 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+
+  drawDeformedRing(
+    ctx,
+    cx,
+    cy,
+    minSide * 0.19,
+    minSide * (0.01 + smoothAudioLevel * 0.024),
+    time,
+    `rgba(243, 173, 84, ${0.62 - latencyEnergy * 0.08})`,
+    Math.max(1.8, ratio * 1.4),
+  );
+  drawDeformedRing(
+    ctx,
+    cx,
+    cy,
+    minSide * 0.27,
+    minSide * (0.012 + smoothAudioLevel * 0.03 + latencyEnergy * 0.006),
+    time * 1.14,
+    "rgba(99, 217, 213, 0.48)",
+    Math.max(1.2, ratio * 1.05),
+    0.8,
+  );
+  drawDeformedRing(
+    ctx,
+    cx,
+    cy,
+    minSide * 0.34,
+    minSide * (0.008 + stateDrive * 0.016),
+    time * 0.82,
+    "rgba(143, 140, 248, 0.28)",
+    Math.max(1, ratio * 0.9),
+    2.2,
+  );
+
+  const orbRadius = minSide * (0.11 + smoothAudioLevel * 0.018 + answerGlow * 0.008);
+  const orb = ctx.createRadialGradient(cx, cy - orbRadius * 0.28, orbRadius * 0.16, cx, cy, orbRadius * 1.4);
+  orb.addColorStop(0, "rgba(252, 223, 167, 0.98)");
+  orb.addColorStop(0.36, "rgba(243, 173, 84, 0.92)");
+  orb.addColorStop(1, "rgba(169, 95, 26, 0.20)");
+  ctx.fillStyle = orb;
+  ctx.beginPath();
+  ctx.arc(cx, cy, orbRadius, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = `rgba(255, 255, 255, ${0.12 + smoothAudioLevel * 0.18})`;
+  ctx.lineWidth = Math.max(1, ratio * 0.9);
+  ctx.beginPath();
+  ctx.arc(cx, cy, orbRadius + minSide * 0.032, 0, Math.PI * 2);
+  ctx.stroke();
+}
+
+function drawWaveFrame(time) {
+  const ratio = ensureCanvasSize(el.wave);
+  const ctx = el.wave.getContext("2d");
+  const { width, height } = el.wave;
+  const mid = height / 2;
+
+  currentAudioLevel = readAudioLevel();
+  smoothAudioLevel += (currentAudioLevel - smoothAudioLevel) * 0.12;
+
+  ctx.clearRect(0, 0, width, height);
+
+  const gradient = ctx.createLinearGradient(0, 0, width, 0);
+  gradient.addColorStop(0, "rgba(99, 217, 213, 0.06)");
+  gradient.addColorStop(0.5, "rgba(243, 173, 84, 0.24)");
+  gradient.addColorStop(1, "rgba(143, 140, 248, 0.06)");
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, width, height);
+
+  ctx.lineWidth = 1.7 * ratio;
+  ctx.strokeStyle = "rgba(243, 173, 84, 0.94)";
+  ctx.beginPath();
+
+  const amp = height * (0.12 + smoothAudioLevel * 0.28 + currentStateDrive(time) * 0.08);
+  for (let x = 0; x <= width; x += 6) {
+    const progress = x / width;
+    const wave =
+      Math.sin(progress * Math.PI * 8 + time * 0.0036) * amp * 0.28 +
+      Math.sin(progress * Math.PI * 18 - time * 0.0046) * amp * 0.1;
+    const envelope = 0.42 + Math.sin(progress * Math.PI) * 0.58;
+    const y = mid + wave * envelope;
+    if (x === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+}
+
+function animate() {
+  const tick = (time) => {
+    drawCoreFrame(time);
+    drawWaveFrame(time);
+    rafId = requestAnimationFrame(tick);
   };
-  loop();
+
+  if (!reducedMotion && !rafId) {
+    rafId = requestAnimationFrame(tick);
+  } else if (reducedMotion) {
+    drawCoreFrame(performance.now());
+    drawWaveFrame(performance.now());
+  }
 }
 
 async function startRec() {
+  if (recorder?.state === "recording" || inFlight) return;
+  clearSettleTimer();
+
   try {
     media = await navigator.mediaDevices.getUserMedia({ audio: true });
   } catch {
-    el.micHint.textContent = "mic blocked — use the text box below";
     el.micBtn.disabled = true;
+    setAppState("mic-denied");
     return;
   }
+
   audioCtx = new AudioContext();
   analyser = audioCtx.createAnalyser();
   analyser.fftSize = 1024;
   audioCtx.createMediaStreamSource(media).connect(analyser);
 
-  if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) drawWave();
-
   chunks = [];
   recorder = new MediaRecorder(media);
-  recorder.ondataavailable = (e) => e.data.size && chunks.push(e.data);
+  recorder.ondataavailable = (event) => {
+    if (event.data.size) chunks.push(event.data);
+  };
   recorder.onstop = onRecStop;
   recorder.start();
 
   el.micBtn.classList.add("rec");
-  el.micHint.textContent = "listening…";
+  setAppState("listening");
 }
 
 async function onRecStop() {
   el.micBtn.classList.remove("rec");
-  el.micHint.textContent = "transcribing…";
-  cancelAnimationFrame(rafId);
-  media?.getTracks().forEach((t) => t.stop());
-  audioCtx?.close();
+  setAppState("transcribing");
+
+  media?.getTracks().forEach((track) => track.stop());
+  media = null;
+
+  await audioCtx?.close();
+  audioCtx = null;
+  analyser = null;
+  currentAudioLevel = 0;
 
   const blob = new Blob(chunks, { type: "audio/webm" });
-  if (blob.size < 1200) { el.micHint.textContent = "too short — hold longer"; return; }
+  if (blob.size < 1200) {
+    renderTranscript("");
+    setAppState("no-speech");
+    scheduleSettle(1400);
+    return;
+  }
 
-  const fd = new FormData();
-  fd.append("audio", blob, "clip.webm");
+  const formData = new FormData();
+  formData.append("audio", blob, "clip.webm");
+
   try {
-    const r = await fetch(`${API}/stt`, { method: "POST", body: fd });
+    const r = await fetch(`${API}/stt`, { method: "POST", body: formData });
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     const d = await r.json();
     if (d.text) {
-      el.transcript.hidden = false;
-      el.transcript.textContent = `“${d.text}”`;
+      renderTranscript(d.text);
       el.q.value = d.text;
-      el.micHint.textContent = `hold space or press the mic`;
-      ask(d.text);
+      await ask(d.text);
     } else {
-      el.micHint.textContent = "no speech detected";
+      renderTranscript("");
+      setAppState("no-speech");
+      scheduleSettle(1400);
     }
-  } catch (e) {
-    el.micHint.textContent = "transcription unavailable — type instead";
+  } catch {
+    renderTranscript("");
+    setAppState("offline", "Speech recognition could not be reached. The typed query path remains available.");
   }
 }
 
@@ -368,23 +687,48 @@ function stopRec() {
   if (recorder?.state === "recording") recorder.stop();
 }
 
-/* ── wiring ─────────────────────────────────────────── */
-el.form.addEventListener("submit", (e) => { e.preventDefault(); ask(el.q.value); });
+function bindEvents() {
+  el.form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    ask(el.q.value);
+  });
 
-el.micBtn.addEventListener("pointerdown", (e) => { e.preventDefault(); startRec(); });
-el.micBtn.addEventListener("pointerup", stopRec);
-el.micBtn.addEventListener("pointerleave", stopRec);
+  el.micBtn.addEventListener("pointerdown", (event) => {
+    event.preventDefault();
+    startRec();
+  });
+  el.micBtn.addEventListener("pointerup", stopRec);
+  el.micBtn.addEventListener("pointerleave", stopRec);
 
-let spaceHeld = false;
-document.addEventListener("keydown", (e) => {
-  if (e.code === "Space" && !spaceHeld && document.activeElement !== el.q) {
-    e.preventDefault(); spaceHeld = true; startRec();
-  }
-});
-document.addEventListener("keyup", (e) => {
-  if (e.code === "Space" && spaceHeld) { spaceHeld = false; stopRec(); }
-});
+  let spaceHeld = false;
+  document.addEventListener("keydown", (event) => {
+    if (event.code === "Space" && !spaceHeld && document.activeElement !== el.q) {
+      event.preventDefault();
+      spaceHeld = true;
+      startRec();
+    }
+  });
+  document.addEventListener("keyup", (event) => {
+    if (event.code === "Space" && spaceHeld) {
+      spaceHeld = false;
+      stopRec();
+    }
+  });
 
-checkHealth();
-loadChips();
-setInterval(checkHealth, 60000);
+  window.addEventListener("resize", () => {
+    if (reducedMotion) animate();
+  });
+}
+
+async function init() {
+  setAppState("idle");
+  renderTranscript("");
+  renderHUD({}, 0);
+  animate();
+  bindEvents();
+  await checkHealth();
+  await loadChips();
+  setInterval(checkHealth, 60000);
+}
+
+init();

@@ -60,3 +60,5 @@ Thumbs.db
 *.swp
 .idea/
 .vscode/
+index_bi/
+index_*/

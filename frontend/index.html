@@ -7,92 +7,170 @@
 <meta name="description" content="Voice-first multilingual grounded question answering over AI4Bharat MSMARCO-XI, with a live latency instrument." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Noto+Sans+Devanagari:wght@400;600&family=Noto+Sans+Tamil:wght@400;600&family=Noto+Sans+Telugu:wght@400;600&family=Noto+Sans+Bengali:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;600&family=Noto+Sans+Tamil:wght@400;600&family=Noto+Sans+Telugu:wght@400;600&family=Noto+Sans+Bengali:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="/src/style.css" />
 </head>
 <body>
+<!--
+THESIS: Sonus is a voice instrument, not a chatbot; the page centers a living retrieval core and lets the answer prove itself with timings and citations.
+OWN-WORLD: Midnight alloy plates, ember-gold energy, sea-glass telemetry, dense mono readouts, and concentric signal geometry instead of card stacks.
+STORY: A judge sees connection truth, speaks or types, watches the system listen and retrieve, then reads either a grounded answer or an explicit abstention.
+FIRST VIEWPORT: Left rail carries the query composer, center stage holds the animated voice core with the live mic, right rail holds the latency instrument and pipeline controls, all above the answer and evidence dock.
+FORM: operate · resonance instrument console · seed sonus-resonance-console-v1
+FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
+-->
 <div class="grain" aria-hidden="true"></div>
+<div class="aurora" aria-hidden="true"></div>
 
-<header class="top">
-  <div class="brand">
-    <span class="logo" aria-hidden="true"></span>
-    <div>
-      <h1>Sonus</h1>
-      <p class="tag">voice → grounded answer</p>
-    </div>
-  </div>
-  <div class="status" role="status" aria-live="polite">
-    <span class="dot" id="statusDot"></span>
-    <span id="statusText">connecting…</span>
-  </div>
-</header>
-
-<main>
-  <!-- ── input ── -->
-  <section class="panel input-panel">
-    <div class="mic-wrap">
-      <button id="micBtn" class="mic" aria-label="Hold to speak, or press space">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z"/><path d="M19 11a7 7 0 0 1-14 0M12 18v4"/></svg>
-      </button>
-      <canvas id="wave" class="wave" width="600" height="64" aria-hidden="true"></canvas>
-      <p class="hint" id="micHint">hold <kbd>space</kbd> or press the mic</p>
-    </div>
-
-    <div class="divider"><span>or type</span></div>
-
-    <form id="askForm" class="ask-row">
-      <input id="q" type="text" autocomplete="off" spellcheck="false"
-             placeholder="Ask in Hindi, Tamil, Telugu, Bengali or English…"
-             aria-label="Type your question" />
-      <button type="submit" id="askBtn">Ask</button>
-    </form>
-
-    <div class="chips" id="chips" aria-label="Sample questions"></div>
-
-    <details class="controls">
-      <summary>Controls</summary>
-      <div class="ctrl-grid">
-        <label>Mode
-          <select id="mode">
-            <option value="strict">strict · extractive only</option>
-            <option value="quality">quality · + LLM refinement</option>
-          </select>
-        </label>
-        <label>Top-K <input id="topk" type="number" min="1" max="10" value="3" /></label>
-        <label class="check"><input id="xling" type="checkbox" checked /> cross-lingual</label>
-        <label class="check"><input id="cache" type="checkbox" checked /> semantic cache</label>
+<div class="shell" id="appShell">
+  <header class="masthead">
+    <div class="masthead__brand">
+      <div class="brandmark" aria-hidden="true">
+        <span class="brandmark__ring"></span>
+        <span class="brandmark__core"></span>
       </div>
-    </details>
-  </section>
-
-  <!-- ── latency HUD ── -->
-  <section class="panel hud-panel" aria-labelledby="hudTitle">
-    <div class="hud-head">
-      <h2 id="hudTitle">Latency</h2>
-      <div class="total"><span id="totalMs">—</span><small>ms</small></div>
+      <div>
+        <p class="masthead__strap">voice retrieval instrument</p>
+        <h1>Sonus</h1>
+      </div>
     </div>
-    <div class="hud" id="hud" role="img" aria-label="Per-stage latency breakdown">
-      <div class="track" id="track"></div>
-      <div class="budget" style="left:100%"><span>200ms budget</span></div>
+    <div class="masthead__meta">
+      <div class="status" role="status" aria-live="polite">
+        <span class="dot" id="statusDot"></span>
+        <span id="statusText">connecting…</span>
+      </div>
+      <p class="meta-line" id="meta">manifest loading…</p>
     </div>
-    <ul class="legend" id="legend"></ul>
-    <p class="hud-note" id="hudNote">server pipeline · excludes network + speech recognition</p>
-  </section>
+  </header>
 
-  <!-- ── answer ── -->
-  <section class="panel answer-panel" aria-live="polite" aria-atomic="false">
-    <div id="transcript" class="transcript" hidden></div>
-    <div id="answerBox" class="answer-box empty">
-      <p class="placeholder">Ask something to see a grounded answer with citations.</p>
-    </div>
-    <div id="sources" class="sources" hidden></div>
-  </section>
-</main>
+  <main class="console">
+    <section class="console-stage panel">
+      <div class="console-stage__copy">
+        <h2>Ask by voice. Watch the pipeline. Trust only what the corpus can prove.</h2>
+        <p class="lede">
+          Sonus listens, retrieves, and answers with visible evidence. Nothing in this
+          surface invents latency, citations, confidence, or connection state.
+        </p>
 
-<footer>
-  <span>MSMARCO-XI · AI4Bharat</span>
-  <span id="meta"></span>
-</footer>
+        <form id="askForm" class="composer">
+          <label class="composer__label" for="q">Type a multilingual question</label>
+          <div class="composer__row">
+            <input id="q" type="text" autocomplete="off" spellcheck="false"
+                   placeholder="Ask in Hindi, Tamil, Telugu, Bengali or English…"
+                   aria-label="Type your question" />
+            <button type="submit" id="askBtn">Query</button>
+          </div>
+        </form>
+
+        <div class="chips" id="chips" aria-label="Sample questions"></div>
+
+        <div class="trace-card">
+          <div class="trace-card__head">
+            <h3>Query trace</h3>
+            <span class="trace-card__status" id="stateLabel">idle</span>
+          </div>
+          <p class="trace-card__detail" id="stateDetail">Hold <kbd>space</kbd> or use the mic to start.</p>
+          <div id="transcript" class="transcript">
+            <p class="placeholder">The captured transcript appears here after speech recognition.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="console-stage__core">
+        <div class="voice-core" aria-label="Voice activity core">
+          <canvas id="core" class="voice-core__canvas" width="640" height="640" aria-hidden="true"></canvas>
+          <div class="voice-core__overlay">
+            <button id="micBtn" class="mic" aria-label="Hold to speak, or press space">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z"/><path d="M19 11a7 7 0 0 1-14 0M12 18v4"/></svg>
+            </button>
+            <p class="voice-core__hint" id="micHint">hold <kbd>space</kbd> or press the mic</p>
+          </div>
+        </div>
+        <canvas id="wave" class="wave" width="900" height="120" aria-hidden="true"></canvas>
+      </div>
+
+      <aside class="console-stage__rail">
+        <section class="rail-card">
+          <div class="rail-card__head">
+            <h3 id="hudTitle">Latency instrument</h3>
+            <div class="total"><span id="totalMs">—</span><small>ms</small></div>
+          </div>
+          <div class="hud" id="hud" role="img" aria-label="Per-stage latency breakdown">
+            <div class="track" id="track"></div>
+            <div class="budget" style="left:100%"><span>200ms budget</span></div>
+          </div>
+          <ul class="legend" id="legend"></ul>
+          <p class="hud-note" id="hudNote">server pipeline · excludes network + speech recognition</p>
+        </section>
+
+        <section class="rail-card">
+          <div class="rail-card__head">
+            <h3>Run controls</h3>
+            <span class="rail-card__tag">live contract</span>
+          </div>
+          <div class="ctrl-grid">
+            <label>Mode
+              <select id="mode">
+                <option value="strict">strict · extractive only</option>
+                <option value="quality">quality · + LLM refinement</option>
+              </select>
+            </label>
+            <label>Top-K
+              <input id="topk" type="number" min="1" max="10" value="3" />
+            </label>
+            <label class="toggle">
+              <input id="xling" type="checkbox" checked />
+              <span class="toggle__track"></span>
+              <span>cross-lingual retrieval</span>
+            </label>
+            <label class="toggle">
+              <input id="cache" type="checkbox" checked />
+              <span class="toggle__track"></span>
+              <span>semantic cache</span>
+            </label>
+          </div>
+        </section>
+
+        <section class="rail-card rail-card--compact">
+          <div class="rail-card__head">
+            <h3>Operating note</h3>
+          </div>
+          <p class="rail-card__copy">
+            The fast path is the source of truth. If quality mode succeeds, the refined
+            answer crossfades in after the grounded extractive answer lands.
+          </p>
+        </section>
+      </aside>
+    </section>
+
+    <section class="dock">
+      <article class="panel answer-panel" aria-live="polite" aria-atomic="false">
+        <div class="panel-head">
+          <h2>Grounded answer</h2>
+          <span class="panel-head__meta">real citations only</span>
+        </div>
+        <div id="answerBox" class="answer-box empty">
+          <p class="placeholder">Ask something to see a grounded answer with citations.</p>
+        </div>
+      </article>
+
+      <article class="panel sources-panel">
+        <div class="panel-head">
+          <h2>Evidence dock</h2>
+          <span class="panel-head__meta">retrieved passages</span>
+        </div>
+        <div id="sources" class="sources">
+          <p class="placeholder">Retrieved passages appear here after a query runs.</p>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>MSMARCO-XI · AI4Bharat</span>
+    <span>frontend rebuild for Sonus</span>
+  </footer>
+</div>
 
 <script type="module" src="/src/main.js"></script>
 </body>

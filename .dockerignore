@@ -1,6 +1,8 @@
 .venv/
 .git/
 index/
+index_bi/
+index_*/
 node_modules/
 frontend/
 __pycache__/
@@ -10,3 +12,6 @@ __pycache__/
 bench/
 docs/
 qa/
+infra/
+*.parquet
+.playwright-mcp/
