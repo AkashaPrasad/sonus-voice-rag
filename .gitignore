@@ -1,0 +1,62 @@
+# ── Secrets: never commit ────────────────────────────────
+info.txt
+*info.txt
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+secrets/
+credentials*.json
+.dev.vars
+.wrangler/
+
+# ── Python ───────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+uv.lock
+
+# ── Data & build artifacts ───────────────────────────────
+data/
+index/*.bin
+index/*.npy
+index/*.mmap
+index/qdrant/
+*.parquet
+*.jsonl
+!bench/**/*.jsonl
+.cache/
+hf_cache/
+models/*.onnx
+
+# ── Node / Next.js ───────────────────────────────────────
+node_modules/
+.next/
+out/
+dist/
+build/
+.turbo/
+*.tsbuildinfo
+frontend/.env*
+!frontend/.env.example
+
+# ── Playwright / QA ──────────────────────────────────────
+playwright-report/
+test-results/
+qa/traces/
+frontend/e2e/.auth/
+
+# ── OS / editor ──────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
