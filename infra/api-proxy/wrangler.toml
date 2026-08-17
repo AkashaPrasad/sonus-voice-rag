@@ -1,0 +1,7 @@
+name = "sonus-api-proxy"
+main = "worker.js"
+compatibility_date = "2026-08-01"
+
+routes = [
+  { pattern = "api.sonus.spacesdrive.cc/*", zone_name = "spacesdrive.cc" }
+]
