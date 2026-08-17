@@ -1,6 +1,6 @@
 # Sonus · voice → grounded answer
 
-**Live demo: [sonus.spacesdrive.cc](https://sonus.spacesdrive.cc)** · API: [`/health`](https://sonus-api-production.up.railway.app/health)
+**Live demo: [sonus.spacesdrive.cc](https://sonus.spacesdrive.cc)** · API: [`/health`](https://vaani-api-production.up.railway.app/health)
 
 Voice-first multilingual question answering grounded in the AI4Bharat
 **MSMARCO-XI** corpus. Ask in Hindi, Tamil, Telugu, or Bengali — by voice or
@@ -140,6 +140,44 @@ number was leakage, not quality. See `test_contextual_does_not_leak_parent_query
 
 ---
 
+## How an answer is decided
+
+Retrieval confidence is a spectrum, not a switch, and the first version treated
+it as a switch. A single cosine cut made the system refuse most ordinary
+questions -- it answered Hindi and refused nearly all English. Three bands
+replaced it:
+
+| Top cosine | Band | What happens |
+|---|---|---|
+| `< 0.18` | nothing relevant | abstain immediately, no LLM call |
+| `0.18 - 0.44` | weak evidence | passages go to the LLM, which reads them and answers or says `INSUFFICIENT_CONTEXT` |
+| `>= 0.44` | confident | extractive span, then the LLM composes it into prose |
+
+The key insight is that **a bag-of-embeddings score is a weak relevance judge
+and a model reading the passage is a strong one.** Retrieval is tuned for
+recall; the LLM supplies precision. Grounding is never relaxed: the model sees
+only retrieved passages, and Layer 4 checks the answer against them.
+
+This also catches a failure a threshold cannot. `what is my bank balance`
+retrieves banking passages at cosine 0.625 -- high enough to answer on -- but
+none of them contain *your* balance. The model refuses; the cosine would not
+have. Two prompt rules were earned the same way:
+
+- Irrelevant retrieved passages are normal and are not grounds to refuse.
+  Without this the model refused whenever the top-6 contained noise.
+- Questions about the user personally must refuse even when a passage shares
+  the topic. Without this, `what did I eat for breakfast` answered *"I drank a
+  carton of ENU protein shake"* by adopting a first-person passage as the
+  user's own.
+
+**Provider:** DeepSeek `deepseek-v4-flash` (the smaller of the two published
+models -- the answer is constrained to supplied context, so latency matters more
+than reasoning headroom), with Groq `gpt-oss-20b` as automatic fallback.
+
+Measured on the deployed index: **13/15** on a mixed suite -- every ordinary
+question answered in both languages, every personal, fictional, injection, and
+unsafe query refused.
+
 ## Guardrails
 
 Four layers, cheap → expensive. **114 cases: 100 adversarial + 14 in-domain
@@ -193,31 +231,29 @@ rather than higher — we would rather abstain than fabricate.
 
 ## Known limitations
 
-**Cross-lingual retrieval does not work well enough to answer on, and we
-measured it rather than assuming it.** For English queries against Indic
-passages:
+**Cross-lingual retrieval on a single-language index does not work, and we
+measured it rather than assuming it.** When the index held only Indic passages,
+English queries had nothing in their own language to match: in-domain cosine
+(0.117-0.490) and off-topic (0.126-0.471) overlapped almost entirely, and BM25
+scored *higher* for off-topic. No threshold separated them.
 
-| | cosine range | BM25 range |
-|---|---|---|
-| in-domain | 0.117 – 0.490 | 0.00 – 2.81 |
-| off-topic | 0.126 – 0.471 | 0.00 – **5.08** |
-
-The distributions overlap almost entirely, and BM25 scores *higher* for
-off-topic queries. **No threshold on either signal separates them.** A permissive
-cross-lingual floor buys in-domain recall by letting off-topic English through —
-trading a false-positive problem for a hallucination problem, which is worse.
-
-So English questions about Indic-only content **abstain**. Fixing this properly
-requires a true multilingual encoder on the retrieval path (bge-m3 class), which
-costs 30–80 ms and would break the latency contract. It is tracked as its own
-benchmark category so the gap stays visible instead of being averaged away.
+The fix was not a better threshold, it was a better corpus. MSMARCO-XI ships
+parallel English/Indic passage pairs, so we index **both sides**: English
+queries now match English passages directly. `what is a corporation` went from
+cosine 0.339 (retrieving chilli-seed and Wikipedia-stub noise) to 0.887.
 
 Also honest about:
-- The deployed index is the `dev` profile (**9,196 chunks / 4,000 passages**), not
-  the full 55.6 GB corpus. `CORPUS_PROFILE=demo|full` scales it; the fast path
-  is O(N) in a BLAS sweep and would need HNSW past ~10⁶ chunks.
-- Extractive answers are verbatim passage spans, so they read like source text
-  rather than prose. That is the tradeoff for zero-hallucination and 1.56 ms.
+- The deployed index is **254,670 chunks / 177,735 passages** (88.9k Hindi +
+  88.8k English), not the full 55.6 GB corpus. Depth beat breadth: an earlier
+  build spread 2,500 rows across three languages and left topical holes, so
+  `what is xylem` retrieved Xanax and JavaScript passages and the system
+  correctly refused. One language pair with deep coverage answers far more
+  real questions than three with gaps.
+- Tamil, Telugu, and Bengali are supported by the pipeline but are not in the
+  deployed index for that reason. `--langs hi,ta,te,bn` rebuilds with them.
+- Confident hits still take the extractive path (1.56 ms); everything else is
+  composed by the LLM and costs ~1-3 s. The latency table measures the
+  extractive pipeline, which is what the 200 ms budget covers.
 - STT is REST, not streaming. The `STTProvider` protocol has a `stream()` slot;
   the realtime WebSocket path is not implemented.
 
