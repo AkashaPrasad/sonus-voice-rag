@@ -111,8 +111,9 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
           <div class="ctrl-grid">
             <label>Mode
               <select id="mode">
-                <option value="strict">strict · extractive only</option>
-                <option value="quality">quality · + LLM refinement</option>
+                <option value="strict">strict · extractive only (~2ms)</option>
+                <option value="quality" selected>quality · composed answer (~2s)</option>
+                <option value="accurate">accurate · verified answer (~8s)</option>
               </select>
             </label>
             <label>Top-K

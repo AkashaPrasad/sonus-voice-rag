@@ -85,8 +85,47 @@ class DeepSeekClient:
             {"role": "user", "content": f"Context:\n{ctx}\n\nQuestion: {query}"},
         ]
 
+    async def verify(self, query: str, answer: str, passages: list[str],
+                     model: str | None = None) -> tuple[bool, str]:
+        """Second-pass check that `answer` is actually supported by `passages`.
+
+        Used by accurate mode. A separate call with a narrow job catches
+        overreach the composing model does not notice about its own output --
+        the composer is invested in its answer, the verifier is not.
+
+        Returns (supported, reason). Fails open on transport errors: a verifier
+        outage should degrade to the composed answer, not to a refusal.
+        """
+        await self.start()
+        ctx = "\n\n".join(f"[{i + 1}] {p}" for i, p in enumerate(passages))
+        prompt = (
+            f"Context passages:\n{ctx}\n\n"
+            f"Question: {query}\n\nProposed answer: {answer}\n\n"
+            "Is every factual claim in the proposed answer directly supported by "
+            "the context passages? Reply with exactly one word: SUPPORTED or "
+            "UNSUPPORTED, then a colon and a short reason."
+        )
+        try:
+            r = await self._client.post(
+                DEEPSEEK_URL,
+                headers={"Authorization": f"Bearer {self.api_key}"},
+                json={"model": model or self.model,
+                      "messages": [
+                          {"role": "system",
+                           "content": "You are a strict grounding verifier. "
+                                      "Judge only whether the context supports the answer."},
+                          {"role": "user", "content": prompt}],
+                      "max_tokens": 300, "temperature": 0.0},
+            )
+            if r.status_code >= 400:
+                return True, f"verifier unavailable (HTTP {r.status_code})"
+            text = (r.json()["choices"][0]["message"]["content"] or "").strip()
+            return (not text.upper().startswith("UNSUPPORTED")), text[:200]
+        except httpx.HTTPError as e:
+            return True, f"verifier error: {type(e).__name__}"
+
     async def complete(self, query: str, passages: list[str], max_tokens: int = 400,
-                       temperature: float = 0.1) -> DeepSeekResult:
+                       temperature: float = 0.1, model: str | None = None) -> DeepSeekResult:
         """Compose a grounded answer.
 
         `max_tokens` is generous because v4-flash spends completion tokens on
@@ -95,11 +134,12 @@ class DeepSeekClient:
         """
         await self.start()
         t0 = time.perf_counter()
+        use_model = model or self.model
         try:
             r = await self._client.post(
                 DEEPSEEK_URL,
                 headers={"Authorization": f"Bearer {self.api_key}"},
-                json={"model": self.model,
+                json={"model": use_model,
                       "messages": self.build_messages(query, passages),
                       "max_tokens": max_tokens, "temperature": temperature},
             )
@@ -112,7 +152,7 @@ class DeepSeekClient:
             return DeepSeekResult(
                 text=text, ttft_ms=total, total_ms=total, ok=bool(text),
                 insufficient="INSUFFICIENT_CONTEXT" in text,
-                meta={"usage": data.get("usage", {}), "model": self.model},
+                meta={"usage": data.get("usage", {}), "model": use_model},
             )
         except httpx.HTTPError as e:
             return DeepSeekResult(error=f"{type(e).__name__}: {e}",

@@ -86,6 +86,8 @@ let audioCtx = null;
 let analyser = null;
 let recorder = null;
 let chunks = [];
+let recordedMime = "";
+let recStartedAt = 0;
 let reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 let currentAudioLevel = 0;
 let smoothAudioLevel = 0;
@@ -231,6 +233,14 @@ function renderAnswer(payload) {
   } else {
     badges.push(`<span class="badge mode">${escapeHTML(payload.mode)}</span>`);
     badges.push(`<span class="badge">conf ${(payload.confidence ?? 0).toFixed(3)}</span>`);
+    // Accurate mode runs an independent grounding check; show its verdict so a
+    // verified answer is visibly different from an unverified one.
+    if (payload.verification?.verified) {
+      badges.push(`<span class="badge refined">grounding verified</span>`);
+    }
+    if (payload.answer_mode === "accurate") {
+      badges.push(`<span class="badge">accurate mode</span>`);
+    }
   }
 
   if (payload.cached) badges.push(`<span class="badge">cache · ${escapeHTML(payload.cached)}</span>`);
@@ -314,7 +324,9 @@ async function ask(query) {
   clearSettleTimer();
   inFlight = true;
   el.askBtn.disabled = true;
-  setAppState("thinking");
+  setAppState("thinking", el.mode.value === "accurate"
+    ? "Accurate mode: deeper retrieval, larger model, and an independent grounding check. This takes several seconds."
+    : undefined);
   el.answerBox.classList.remove("empty");
   el.answerBox.innerHTML = `<p class="placeholder">query sent to the retrieval pipeline…</p>`;
 
@@ -630,15 +642,48 @@ async function startRec() {
   audioCtx.createMediaStreamSource(media).connect(analyser);
 
   chunks = [];
-  recorder = new MediaRecorder(media);
+  recorder = new MediaRecorder(media, pickRecorderOptions());
   recorder.ondataavailable = (event) => {
     if (event.data.size) chunks.push(event.data);
   };
   recorder.onstop = onRecStop;
-  recorder.start();
+  // A timeslice makes ondataavailable fire periodically instead of only at
+  // stop(). Without it a short clip can reach onstop before its single blob is
+  // delivered, and we upload silence.
+  recorder.start(250);
+  recStartedAt = performance.now();
 
   el.micBtn.classList.add("rec");
   setAppState("listening");
+}
+
+/* Codec support differs by browser: Chrome/Firefox give webm/opus, Safari gives
+   mp4/aac. Record whatever the browser actually supports and remember the real
+   MIME so the upload is labelled honestly -- sending Safari's mp4 as .webm made
+   the server hand the wrong extension to the STT provider. */
+function pickRecorderOptions() {
+  const candidates = [
+    "audio/webm;codecs=opus",
+    "audio/webm",
+    "audio/mp4;codecs=mp4a.40.2",
+    "audio/mp4",
+    "audio/ogg;codecs=opus",
+  ];
+  for (const mimeType of candidates) {
+    if (window.MediaRecorder?.isTypeSupported?.(mimeType)) {
+      recordedMime = mimeType;
+      return { mimeType, audioBitsPerSecond: 64000 };
+    }
+  }
+  recordedMime = "";
+  return {};
+}
+
+function extensionFor(mime) {
+  if (mime.includes("webm")) return "webm";
+  if (mime.includes("mp4")) return "m4a";
+  if (mime.includes("ogg")) return "ogg";
+  return "webm";
 }
 
 async function onRecStop() {
@@ -653,16 +698,23 @@ async function onRecStop() {
   analyser = null;
   currentAudioLevel = 0;
 
-  const blob = new Blob(chunks, { type: "audio/webm" });
-  if (blob.size < 1200) {
+  const mime = recordedMime || "audio/webm";
+  const blob = new Blob(chunks, { type: mime });
+  const heldMs = recStartedAt ? performance.now() - recStartedAt : 0;
+
+  // Reject clips that are too short to contain speech rather than sending them
+  // and letting the provider return an empty transcript.
+  if (heldMs < 350 || blob.size < 1200) {
     renderTranscript("");
-    setAppState("no-speech");
-    scheduleSettle(1400);
+    setAppState("no-speech", heldMs < 350
+      ? "Hold the mic a little longer — that clip was too short to contain speech."
+      : "The clip captured no audible speech. Check the microphone input level.");
+    scheduleSettle(1800);
     return;
   }
 
   const formData = new FormData();
-  formData.append("audio", blob, "clip.webm");
+  formData.append("audio", blob, `clip.${extensionFor(mime)}`);
 
   try {
     const r = await fetch(`${API}/stt`, { method: "POST", body: formData });
@@ -684,7 +736,11 @@ async function onRecStop() {
 }
 
 function stopRec() {
-  if (recorder?.state === "recording") recorder.stop();
+  if (recorder?.state !== "recording") return;
+  // Flush whatever is buffered before stopping, so the last words of a short
+  // utterance are not lost.
+  try { recorder.requestData(); } catch { /* not fatal */ }
+  recorder.stop();
 }
 
 function bindEvents() {

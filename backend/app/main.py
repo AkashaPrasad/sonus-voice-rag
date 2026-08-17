@@ -46,7 +46,11 @@ class AskRequest(BaseModel):
     k: int = Field(3, ge=1, le=10)
     cross_lingual: bool = True
     use_cache: bool = True
-    mode: str = Field("strict", pattern="^(strict|quality)$")
+    # strict   -- extractive fast path, ~2ms, no LLM
+    # quality  -- flash composes from 6 passages (default)
+    # accurate -- pro model, deeper retrieval, second-pass grounding verifier.
+    #             Slower on purpose; correctness is the objective.
+    mode: str = Field("quality", pattern="^(strict|quality|accurate)$")
 
 
 def load_index(path: Path):
@@ -118,6 +122,13 @@ async def lifespan(app: FastAPI):
         await deepseek.start()
         log.info("deepseek enabled model=%s", deepseek.model)
 
+    prompt_guard = None
+    if keys:
+        from guardrails.promptguard import PromptGuardClient
+        prompt_guard = PromptGuardClient(keys)
+        await prompt_guard.start()
+        log.info("prompt-guard enabled model=%s", prompt_guard.model)
+
     if not (groq or deepseek):
         log.warning("no LLM configured -- extractive path only")
 
@@ -133,7 +144,8 @@ async def lifespan(app: FastAPI):
 
     STATE.update(pipeline=pipeline, index=index, embedder=embedder, cache=cache,
                  parents=parents, manifest=manifest, groq=groq, deepseek=deepseek,
-                 ready=True, stt=stt_primary, stt_fallback=stt_fallback,
+                 prompt_guard=prompt_guard, ready=True,
+                 stt=stt_primary, stt_fallback=stt_fallback,
                  boot_ms=round((time.perf_counter() - t0) * 1000, 1))
     log.info("ready in %.1fms  chunks=%d", STATE["boot_ms"], len(index.chunk_ids))
     yield
@@ -141,6 +153,8 @@ async def lifespan(app: FastAPI):
         await groq.close()
     if deepseek:
         await deepseek.close()
+    if prompt_guard:
+        await prompt_guard.close()
 
 
 app = FastAPI(title="Sonus", version="1.0.0", default_response_class=ORJSONResponse,
@@ -162,14 +176,18 @@ async def health():
     return {"status": "ok", "ready": True, "boot_ms": STATE["boot_ms"],
             "manifest": STATE["manifest"], "cache": STATE["cache"].stats(),
             "groq_enabled": STATE.get("groq") is not None,
-            "deepseek_enabled": STATE.get("deepseek") is not None}
+            "deepseek_enabled": STATE.get("deepseek") is not None,
+            "prompt_guard_enabled": STATE.get("prompt_guard") is not None}
 
 
-async def _compose(query: str, passages: list[str]):
+ACCURATE_MODEL = os.getenv("DEEPSEEK_ACCURATE_MODEL", "deepseek-v4-pro")
+
+
+async def _compose(query: str, passages: list[str], model: str | None = None):
     """Run the quality-path LLM, preferring DeepSeek and falling back to Groq."""
     ds, groq = STATE.get("deepseek"), STATE.get("groq")
     if ds:
-        r = await ds.complete(query, passages)
+        r = await ds.complete(query, passages, model=model)
         if r.ok:
             return r, "deepseek"
         log.warning("deepseek failed: %s", r.error)
@@ -179,6 +197,42 @@ async def _compose(query: str, passages: list[str]):
             return r, "groq"
         log.warning("groq failed: %s", r.error)
     return None, None
+
+
+async def _compose_accurate(query: str, passages: list[str]) -> tuple:
+    """Accurate mode: compose with the larger model, then verify the result.
+
+    Two independent calls rather than one careful call. The composer is invested
+    in the answer it just wrote; a separate verifier with a narrow question
+    ("is every claim supported?") catches overreach the composer does not see in
+    its own output. On UNSUPPORTED we retry once with the verifier's objection
+    fed back, and abstain if the retry is still unsupported -- a wrong answer is
+    worse than no answer in this mode.
+    """
+    ds = STATE.get("deepseek")
+    if ds is None:
+        return await _compose(query, passages) + (None,)
+
+    res = await ds.complete(query, passages, max_tokens=700, model=ACCURATE_MODEL)
+    if not res.ok or res.insufficient:
+        return res, "deepseek", None
+
+    supported, reason = await ds.verify(query, res.text, passages, model=ACCURATE_MODEL)
+    if supported:
+        return res, "deepseek", {"verified": True, "verifier": reason}
+
+    retry_passages = passages + [
+        f"VERIFIER OBJECTION to a previous draft: {reason}. "
+        "Answer again using only what the passages state, or reply "
+        "INSUFFICIENT_CONTEXT."
+    ]
+    retry = await ds.complete(query, retry_passages, max_tokens=700, model=ACCURATE_MODEL)
+    if retry.ok and not retry.insufficient:
+        ok2, reason2 = await ds.verify(query, retry.text, passages, model=ACCURATE_MODEL)
+        if ok2:
+            return retry, "deepseek", {"verified": True, "verifier": reason2, "retried": True}
+        return retry, "deepseek", {"verified": False, "verifier": reason2, "retried": True}
+    return retry, "deepseek", {"verified": False, "verifier": reason, "retried": True}
 
 
 @app.post("/ask")
@@ -192,8 +246,34 @@ async def ask(req: AskRequest):
     #
     # Retrieval is CPU-bound and sub-millisecond; a thread hop would cost more
     # than it saves, so run it inline on the event loop.
-    result = pipeline.run(req.query, lang=req.lang, k=max(req.k, 6),
-                          cross_lingual=req.cross_lingual, use_cache=req.use_cache)
+    accurate = req.mode == "accurate"
+
+    # Accurate mode adds Meta's Prompt Guard 2 on top of the in-process regex
+    # pack. The regex layer already ran inside pipeline.run(); this catches
+    # phrasings no pattern list anticipated, in any script.
+    if accurate:
+        pg = STATE.get("prompt_guard")
+        if pg is not None:
+            v = await pg.check(req.query)
+            if v.ok and v.is_injection:
+                from answer.extractive import ABSTAIN_TEXT
+                from guardrails.rails import detect_lang
+                lang = req.lang or detect_lang(req.query)
+                return {"answer": ABSTAIN_TEXT.get(lang, ABSTAIN_TEXT["en"]),
+                        "mode": "blocked", "abstained": True, "blocked": True,
+                        "block_category": "prompt_injection",
+                        "block_layer": "L2_prompt_guard",
+                        "block_reason": f"prompt-guard score {v.score:.4f}",
+                        "confidence": 0.0, "lang": lang, "citations": [],
+                        "passages": [], "timings": {"prompt_guard": round(v.latency_ms, 1)},
+                        "total_ms": round(v.latency_ms, 1), "answer_mode": "accurate"}
+    # Accurate mode reads more of the corpus before deciding. Retrieval is
+    # sub-millisecond, so the extra depth costs nothing measurable and gives the
+    # model a real chance to find the supporting passage.
+    top_k = 12 if accurate else max(req.k, 6)
+    result = pipeline.run(req.query, lang=req.lang, k=top_k,
+                          cross_lingual=req.cross_lingual,
+                          use_cache=req.use_cache and not accurate)
 
     # Compose with the LLM whenever we have passages and are not already
     # refusing. Two distinct jobs, both better done by a model that reads the
@@ -209,12 +289,24 @@ async def ask(req: AskRequest):
     #
     # Grounding is preserved: the model sees only retrieved passages and is
     # instructed to reply INSUFFICIENT_CONTEXT when they do not answer.
+    # strict is the extractive-only contract: no LLM, ~2ms, which is what the
+    # latency table measures. Composing there would quietly turn a 2ms mode into
+    # a 2s one. Weak evidence is the exception -- there is no verified span to
+    # return, so strict abstains rather than guessing.
     should_compose = (
-        not result.get("blocked")
+        req.mode != "strict"
+        and not result.get("blocked")
         and not result.get("abstained")
         and bool(result.get("passages"))
         and (STATE.get("deepseek") or STATE.get("groq"))
     )
+
+    if req.mode == "strict" and result.get("weak_evidence"):
+        from answer.extractive import ABSTAIN_TEXT
+        lang = result.get("lang", "en")
+        result.update(answer=ABSTAIN_TEXT.get(lang, ABSTAIN_TEXT["en"]),
+                      mode="abstain", abstained=True,
+                      abstain_reason="weak_evidence_no_llm")
 
     if should_compose:
         extractive_answer = result.get("answer", "")
@@ -222,9 +314,28 @@ async def ask(req: AskRequest):
         # Send more context than the UI shows. Retrieval reliably places a
         # relevant passage in the top few but not always at rank 1, and the
         # model is a better filter of the extras than a cosine cutoff is.
-        ctx_passages = [p["text"] for p in result["passages"][:6]]
-        res, provider = await _compose(req.query, ctx_passages)
+        ctx_passages = [p["text"] for p in result["passages"][:12 if accurate else 6]]
+
+        verification = None
+        if accurate:
+            res, provider, verification = await _compose_accurate(req.query, ctx_passages)
+        else:
+            res, provider = await _compose(req.query, ctx_passages)
         result["timings"]["llm"] = round((time.perf_counter() - t0) * 1000, 1)
+        result["answer_mode"] = req.mode
+        if verification:
+            result["verification"] = verification
+
+        # In accurate mode an answer the verifier rejected twice is withheld:
+        # the whole point of the mode is that a wrong answer costs more than none.
+        if accurate and verification and verification.get("verified") is False:
+            from answer.extractive import ABSTAIN_TEXT
+            lang = result.get("lang", "en")
+            result.update(answer=ABSTAIN_TEXT.get(lang, ABSTAIN_TEXT["en"]),
+                          mode="abstain", abstained=True, citations=[],
+                          abstain_reason="failed_verification")
+            result["total_ms"] = round(result["total_ms"] + result["timings"]["llm"], 3)
+            return result
 
         if res and res.ok and not res.insufficient:
             result.update(answer=res.text, mode="generative", abstained=False,
