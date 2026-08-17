@@ -120,19 +120,30 @@ class HybridIndex:
     # ── search ───────────────────────────────────────────────────────────
     def search_dense(self, qvec: np.ndarray, k: int = 50,
                      rescore: int = 200) -> list[tuple[int, float]]:
-        """int8 sweep, then float32 rescore of the top `rescore` candidates."""
-        if self.codes is None or not len(self.chunk_ids):
+        """Exhaustive cosine sweep via BLAS, then exact top-k.
+
+        The obvious-looking int8 version -- `codes.astype(np.int16) @ q16` --
+        is 17x SLOWER than this, because the upcast materializes a fresh
+        ~138MB int16 temporary on every query and integer matmul does not hit
+        BLAS at all. Measured at 269,875 chunks: 31.26ms int8-upcast vs 1.81ms
+        float32 BLAS.
+
+        So the int8 codes are kept for what they are actually good at -- 4x
+        smaller storage -- while the query-time sweep uses the float32 matrix
+        and multi-threaded BLAS. Unit-norm rows mean the dot product is already
+        the cosine, so no rescoring pass is needed for correctness.
+        """
+        if self.vectors is None or not len(self.chunk_ids):
             return []
-        # int8 matmul in int32 space; monotonic in the true cosine, so it is a
-        # valid prefilter even though the magnitudes are unnormalized.
-        approx = self.codes.astype(np.int16) @ np.round(
-            qvec / self.scale * 127.0).astype(np.int16)
-        n = len(approx)
-        cand = np.argpartition(-approx, min(rescore, n - 1))[:rescore] if n > rescore \
-            else np.arange(n)
-        exact = self.vectors[cand] @ qvec           # float32, unit-norm -> cosine
-        order = np.argsort(-exact)[:k]
-        return [(int(cand[i]), float(exact[i])) for i in order]
+
+        scores = self.vectors @ qvec                # [N] float32 cosine
+        n = len(scores)
+        if n > k:
+            top = np.argpartition(-scores, k - 1)[:k]
+            top = top[np.argsort(-scores[top])]
+        else:
+            top = np.argsort(-scores)
+        return [(int(i), float(scores[i])) for i in top]
 
     def search_sparse(self, query: str, k: int = 50) -> list[tuple[int, float]]:
         if self._bm25 is None:

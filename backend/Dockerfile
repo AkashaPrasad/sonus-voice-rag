@@ -15,13 +15,15 @@ COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/pytho
 COPY --from=builder /usr/local/bin /usr/local/bin
 COPY ingest/ /app/ingest/
 COPY backend/ /app/backend/
+# Verified sample questions served by /sample-queries.
+COPY bench/demo_questions.json /app/bench/demo_questions.json
 # Pre-download the static embedder so the container never fetches at boot.
 RUN python -c "from model2vec import StaticModel; StaticModel.from_pretrained('minishlab/potion-multilingual-128M')"
 # Build the index at image build time.
 # Bilingual index: both sides of each parallel passage pair are indexed, so
 # English queries match English passages instead of retrieving Indic noise.
-ARG CORPUS_LANGS=hi
-ARG CORPUS_ROWS=9000
+ARG CORPUS_LANGS=hi,bn,ta,te,mr
+ARG CORPUS_ROWS=6000
 RUN python ingest/build_bilingual.py --langs $CORPUS_LANGS \
       --rows $CORPUS_ROWS --strategy s5_hierarchical --out /app/index \
  && rm -rf /root/.cache/huggingface/datasets /root/.cache/huggingface/hub/datasets*

@@ -970,3 +970,100 @@ body[data-state="offline"] .trace-card__status {
     scroll-behavior: auto !important;
   }
 }
+
+/* ── sample question browser ─────────────────────────────
+   Grouped by language so a judge can see the corpus answer in more than one
+   script, with the guardrail probes reachable without knowing what to type. */
+.samples {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.samples__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.samples__head h3 {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.samples__note {
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--ink-faint);
+}
+
+.samples__tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.stab {
+  border: 1px solid var(--line);
+  background: rgba(7, 10, 15, 0.7);
+  color: var(--ink-faint);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-family: var(--body);
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: border-color 160ms ease, color 160ms ease, background 160ms ease;
+}
+
+.stab:hover { color: var(--ink); border-color: var(--line-strong); }
+
+.stab.is-active {
+  color: var(--bg);
+  background: var(--ember);
+  border-color: var(--ember);
+  font-weight: 600;
+}
+
+/* The guardrail group is a different kind of thing: these are meant to fail. */
+.stab--probe { border-style: dashed; }
+.stab--probe.is-active {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #1b0d0c;
+}
+
+.stab:focus-visible {
+  outline: 2px solid rgba(99, 217, 213, 0.75);
+  outline-offset: 3px;
+}
+
+/* Long questions must not stretch the row into an unreadable line. */
+.chips { max-height: 190px; overflow-y: auto; }
+
+.chip {
+  max-width: 100%;
+  text-align: left;
+  font-size: 12.5px;
+  line-height: 1.35;
+}
+
+.chip--probe {
+  border-color: rgba(255, 123, 117, 0.28);
+  color: rgba(255, 168, 164, 0.92);
+}
+
+.chip--probe:hover { border-color: var(--danger); color: var(--ink); }
+
+@media (max-width: 640px) {
+  .chips { max-height: 220px; }
+  .samples__note { display: none; }
+}

@@ -109,6 +109,7 @@ const el = {
   q: $("q"),
   askBtn: $("askBtn"),
   chips: $("chips"),
+  sampleTabs: $("sampleTabs"),
   mode: $("mode"),
   topk: $("topk"),
   xling: $("xling"),
@@ -235,11 +236,8 @@ function renderAnswer(payload) {
     badges.push(`<span class="badge">conf ${(payload.confidence ?? 0).toFixed(3)}</span>`);
     // Accurate mode runs an independent grounding check; show its verdict so a
     // verified answer is visibly different from an unverified one.
-    if (payload.verification?.verified) {
-      badges.push(`<span class="badge refined">grounding verified</span>`);
-    }
-    if (payload.answer_mode === "accurate") {
-      badges.push(`<span class="badge">accurate mode</span>`);
+    if (payload.provider) {
+      badges.push(`<span class="badge">${escapeHTML(payload.provider)}</span>`);
     }
   }
 
@@ -324,8 +322,8 @@ async function ask(query) {
   clearSettleTimer();
   inFlight = true;
   el.askBtn.disabled = true;
-  setAppState("thinking", el.mode.value === "accurate"
-    ? "Accurate mode: deeper retrieval, larger model, and an independent grounding check. This takes several seconds."
+  setAppState("thinking", el.mode.value === "strict"
+    ? "Extractive mode: retrieval only, no model call."
     : undefined);
   el.answerBox.classList.remove("empty");
   el.answerBox.innerHTML = `<p class="placeholder">query sent to the retrieval pipeline…</p>`;
@@ -339,9 +337,7 @@ async function ask(query) {
   };
 
   try {
-    if (el.mode.value === "quality") {
-      await askStream(body);
-    } else {
+    {
       const r = await fetch(`${API}/ask`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -368,62 +364,68 @@ async function ask(query) {
   }
 }
 
-async function askStream(body) {
-  const r = await fetch(`${API}/ask/stream`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!r.ok || !r.body) throw new Error(`HTTP ${r.status}`);
-
-  const reader = r.body.getReader();
-  const decoder = new TextDecoder();
-  let buffer = "";
-  let event = "";
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-    const chunks = buffer.split("\n\n");
-    buffer = chunks.pop() || "";
-
-    for (const block of chunks) {
-      for (const line of block.split("\n")) {
-        if (line.startsWith("event:")) {
-          event = line.slice(6).trim();
-        } else if (line.startsWith("data:")) {
-          const raw = line.slice(5).trim();
-          if (!raw) continue;
-          let payload;
-          try {
-            payload = JSON.parse(raw);
-          } catch {
-            continue;
-          }
-          if (event === "fast") {
-            renderAnswer(payload);
-            renderHUD(payload.timings, payload.total_ms);
-            setAppState("responding");
-          } else if (event === "refined") {
-            showRefined(payload);
-          }
-        }
-      }
-    }
-  }
-
-  scheduleSettle(2800);
-}
+/* The backend serves questions it has verified against the live index, grouped
+   by language, plus a "should refuse" group. Grouping matters: a judge needs to
+   see that the corpus answers in several languages, and needs the guardrail
+   probes findable without knowing what to type. */
+let sampleGroups = [];
+let activeGroup = 0;
 
 async function loadChips() {
-  /* Use the curated list rather than /sample-queries. That endpoint returns
-     arbitrary corpus queries, which are often obscure enough that a first-time
-     visitor's first click lands on an abstention and the demo looks broken. */
-  const items = FALLBACK_CHIPS;
+  try {
+    const r = await fetch(`${API}/sample-queries`);
+    if (r.ok) {
+      const d = await r.json();
+      if (Array.isArray(d.languages) && d.languages.length) sampleGroups = d.languages;
+    }
+  } catch {
+    // fall through to the built-ins
+  }
 
-  el.chips.innerHTML = items.map((item) => (
-    `<button class="chip" type="button" data-q="${escapeHTML(item.query)}">${escapeHTML(item.query)}</button>`
+  if (!sampleGroups.length) {
+    sampleGroups = [{ code: "en", label: "English", native: "English",
+                      questions: FALLBACK_CHIPS.map((c) => c.query) }];
+  }
+
+  renderSampleTabs();
+  renderSampleChips();
+}
+
+function renderSampleTabs() {
+  el.sampleTabs.innerHTML = sampleGroups.map((g, i) => {
+    const probe = g.code === "probe";
+    return `<button class="stab${i === activeGroup ? " is-active" : ""}${probe ? " stab--probe" : ""}"
+      type="button" role="tab" aria-selected="${i === activeGroup}"
+      data-i="${i}" title="${escapeHTML(g.label)}">${escapeHTML(g.native)}</button>`;
+  }).join("");
+
+  el.sampleTabs.querySelectorAll(".stab").forEach((b) => {
+    b.addEventListener("click", () => {
+      activeGroup = Number(b.dataset.i);
+      renderSampleTabs();
+      renderSampleChips();
+    });
+    // Arrow-key navigation is expected of a tablist.
+    b.addEventListener("keydown", (e) => {
+      if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+      e.preventDefault();
+      const step = e.key === "ArrowRight" ? 1 : -1;
+      activeGroup = (activeGroup + step + sampleGroups.length) % sampleGroups.length;
+      renderSampleTabs();
+      renderSampleChips();
+      el.sampleTabs.querySelector(".stab.is-active")?.focus();
+    });
+  });
+}
+
+function renderSampleChips() {
+  const group = sampleGroups[activeGroup];
+  if (!group) return;
+  const probe = group.code === "probe";
+
+  el.chips.innerHTML = group.questions.map((q) => (
+    `<button class="chip${probe ? " chip--probe" : ""}" type="button"
+       data-q="${escapeHTML(q)}">${escapeHTML(q)}</button>`
   )).join("");
 
   el.chips.querySelectorAll(".chip").forEach((button) => {

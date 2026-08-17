@@ -62,7 +62,17 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
           </div>
         </form>
 
-        <div class="chips" id="chips" aria-label="Sample questions"></div>
+        <section class="samples" aria-labelledby="samplesTitle">
+          <div class="samples__head">
+            <h3 id="samplesTitle">Questions this corpus can answer</h3>
+            <p class="samples__note">
+              Verified against the live index — each one returns a cited answer.
+            </p>
+          </div>
+          <div class="samples__tabs" id="sampleTabs" role="tablist"
+               aria-label="Question language"></div>
+          <div class="chips" id="chips" role="tabpanel" aria-live="polite"></div>
+        </section>
 
         <div class="trace-card">
           <div class="trace-card__head">
@@ -111,9 +121,8 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
           <div class="ctrl-grid">
             <label>Mode
               <select id="mode">
-                <option value="strict">strict · extractive only (~2ms)</option>
-                <option value="quality" selected>quality · composed answer (~2s)</option>
-                <option value="accurate">accurate · verified answer (~8s)</option>
+                <option value="composed" selected>composed · grounded answer</option>
+                <option value="strict">extractive · raw passage span</option>
               </select>
             </label>
             <label>Top-K
