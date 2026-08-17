@@ -178,6 +178,29 @@ Measured on the deployed index: **13/15** on a mixed suite -- every ordinary
 question answered in both languages, every personal, fictional, injection, and
 unsafe query refused.
 
+## Three answer modes
+
+| Mode | Latency | What it does |
+|---|---|---|
+| `strict` | **~31 ms** | Extractive span only. No LLM, no network. This is the mode the 200 ms latency table measures. |
+| `quality` | ~2 s | `deepseek-v4-flash` composes from the top 6 passages. Default. |
+| `accurate` | ~6-16 s | `deepseek-v4-pro`, k=12 retrieval, plus an **independent grounding verifier**. |
+
+**Accurate mode** exists because a wrong answer costs more than a slow one. It
+makes two separate model calls rather than one careful call: the composer writes
+the answer, then a second call with a narrow job -- *is every claim here
+supported by these passages?* -- judges it. The composer is invested in its own
+output; the verifier is not, and catches overreach the composer does not see.
+
+On `UNSUPPORTED` it retries once with the verifier's objection fed back, and
+abstains if the retry still fails. Verified answers carry a `grounding verified`
+badge in the UI, so a checked answer is visibly different from an unchecked one.
+
+Measured in production, 10/10: every real question answered with
+`verified: true`, every personal, fictional, and injection query refused. It also
+recovers questions `quality` mode abstained on -- `कॉर्पोरेशन क्या है` fails at
+k=6 and succeeds at k=12.
+
 ## Guardrails
 
 Four layers, cheap → expensive. **114 cases: 100 adversarial + 14 in-domain
@@ -274,6 +297,18 @@ ranking that feature-based rescoring already approximates.
 
 **Llama Guard on the hot path** → rejected on published latency (~459 ms P95),
 which is 2× the entire pipeline budget.
+
+**LLM Guard / NeMo Guardrails** → evaluated and rejected as dependencies. Both
+are good libraries, but both pull in `torch` + `transformers` (+ `presidio`):
+~2 GB in the image and tens of ms per call, against four rail layers that
+currently cost **0.28 ms in total**. They would dominate the budget they exist
+to protect. Instead we call **Meta's Llama Prompt Guard 2** -- the model those
+libraries run for injection detection -- hosted on Groq, so we get its judgement
+with zero image weight. Measured: **0.9996** on an English injection, **0.9992**
+on a Hindi one, **0.0004** on benign queries. A ~2500× margin that holds across
+scripts, which matters because most injection pattern packs are English-only. It
+supplements the in-process regex pack rather than replacing it, runs only in
+accurate mode, and fails open.
 
 **Cloudflare Workers + Vectorize for the backend** → rejected. The free tier
 allows 10 ms CPU per invocation; we cannot run embedding and fusion in that.
