@@ -1,0 +1,12 @@
+.venv/
+.git/
+index/
+node_modules/
+frontend/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+bench/
+docs/
+qa/

@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Vaani · Voice RAG</title>
+<meta name="description" content="Voice-first multilingual grounded question answering over AI4Bharat MSMARCO-XI, with a live latency instrument." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Noto+Sans+Devanagari:wght@400;600&family=Noto+Sans+Tamil:wght@400;600&family=Noto+Sans+Telugu:wght@400;600&family=Noto+Sans+Bengali:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+
+<header class="top">
+  <div class="brand">
+    <span class="logo" aria-hidden="true"></span>
+    <div>
+      <h1>Vaani</h1>
+      <p class="tag">voice → grounded answer</p>
+    </div>
+  </div>
+  <div class="status" role="status" aria-live="polite">
+    <span class="dot" id="statusDot"></span>
+    <span id="statusText">connecting…</span>
+  </div>
+</header>
+
+<main>
+  <!-- ── input ── -->
+  <section class="panel input-panel">
+    <div class="mic-wrap">
+      <button id="micBtn" class="mic" aria-label="Hold to speak, or press space">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z"/><path d="M19 11a7 7 0 0 1-14 0M12 18v4"/></svg>
+      </button>
+      <canvas id="wave" class="wave" width="600" height="64" aria-hidden="true"></canvas>
+      <p class="hint" id="micHint">hold <kbd>space</kbd> or press the mic</p>
+    </div>
+
+    <div class="divider"><span>or type</span></div>
+
+    <form id="askForm" class="ask-row">
+      <input id="q" type="text" autocomplete="off" spellcheck="false"
+             placeholder="Ask in Hindi, Tamil, Telugu, Bengali or English…"
+             aria-label="Type your question" />
+      <button type="submit" id="askBtn">Ask</button>
+    </form>
+
+    <div class="chips" id="chips" aria-label="Sample questions"></div>
+
+    <details class="controls">
+      <summary>Controls</summary>
+      <div class="ctrl-grid">
+        <label>Mode
+          <select id="mode">
+            <option value="strict">strict · extractive only</option>
+            <option value="quality">quality · + LLM refinement</option>
+          </select>
+        </label>
+        <label>Top-K <input id="topk" type="number" min="1" max="10" value="3" /></label>
+        <label class="check"><input id="xling" type="checkbox" checked /> cross-lingual</label>
+        <label class="check"><input id="cache" type="checkbox" checked /> semantic cache</label>
+      </div>
+    </details>
+  </section>
+
+  <!-- ── latency HUD ── -->
+  <section class="panel hud-panel" aria-labelledby="hudTitle">
+    <div class="hud-head">
+      <h2 id="hudTitle">Latency</h2>
+      <div class="total"><span id="totalMs">—</span><small>ms</small></div>
+    </div>
+    <div class="hud" id="hud" role="img" aria-label="Per-stage latency breakdown">
+      <div class="track" id="track"></div>
+      <div class="budget" style="left:100%"><span>200ms budget</span></div>
+    </div>
+    <ul class="legend" id="legend"></ul>
+    <p class="hud-note" id="hudNote">server pipeline · excludes network + speech recognition</p>
+  </section>
+
+  <!-- ── answer ── -->
+  <section class="panel answer-panel" aria-live="polite" aria-atomic="false">
+    <div id="transcript" class="transcript" hidden></div>
+    <div id="answerBox" class="answer-box empty">
+      <p class="placeholder">Ask something to see a grounded answer with citations.</p>
+    </div>
+    <div id="sources" class="sources" hidden></div>
+  </section>
+</main>
+
+<footer>
+  <span>MSMARCO-XI · AI4Bharat</span>
+  <span id="meta"></span>
+</footer>
+
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>

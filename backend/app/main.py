@@ -22,7 +22,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "backend"))
 
-from fastapi import FastAPI, HTTPException  # noqa: E402
+from fastapi import FastAPI, File, HTTPException, UploadFile  # noqa: E402
 from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
 from fastapi.responses import ORJSONResponse, StreamingResponse  # noqa: E402
 from pydantic import BaseModel, Field  # noqa: E402
@@ -111,12 +111,19 @@ async def lifespan(app: FastAPI):
     else:
         log.warning("no GROQ keys -- quality path disabled, extractive still works")
 
+    from stt.providers import build_stt
+    stt_primary, stt_fallback = build_stt()
+    log.info("stt primary=%s fallback=%s",
+             type(stt_primary).__name__ if stt_primary else None,
+             type(stt_fallback).__name__ if stt_fallback else None)
+
     # Freeze surviving objects so the collector stops scanning them.
     gc.collect()
     gc.freeze()
 
     STATE.update(pipeline=pipeline, index=index, embedder=embedder, cache=cache,
                  parents=parents, manifest=manifest, groq=groq, ready=True,
+                 stt=stt_primary, stt_fallback=stt_fallback,
                  boot_ms=round((time.perf_counter() - t0) * 1000, 1))
     log.info("ready in %.1fms  chunks=%d", STATE["boot_ms"], len(index.chunk_ids))
     yield
@@ -190,6 +197,32 @@ async def ask_stream(req: AskRequest):
     return StreamingResponse(gen(), media_type="text/event-stream",
                              headers={"Cache-Control": "no-cache",
                                       "X-Accel-Buffering": "no"})
+
+
+@app.post("/stt")
+async def stt(audio: UploadFile = File(...)):
+    """Transcribe a clip. Falls back to the secondary provider on any failure."""
+    if not STATE.get("ready"):
+        raise HTTPException(503, "warming up")
+    primary, fallback = STATE.get("stt"), STATE.get("stt_fallback")
+    if primary is None:
+        raise HTTPException(503, "no STT provider configured")
+
+    data = await audio.read()
+    if len(data) > 12_000_000:
+        raise HTTPException(413, "audio too large")
+    mime = audio.content_type or "audio/webm"
+
+    for provider in (primary, fallback):
+        if provider is None:
+            continue
+        try:
+            t = await provider.transcribe_once(data, mime)
+            return {"text": t.text, "language": t.language, "provider": t.provider,
+                    "latency_ms": round(t.provider_latency_ms, 1)}
+        except Exception as e:  # noqa: BLE001 - try the next provider, never 500
+            log.warning("stt provider %s failed: %s", type(provider).__name__, e)
+    raise HTTPException(502, "all STT providers failed")
 
 
 @app.get("/metrics")
