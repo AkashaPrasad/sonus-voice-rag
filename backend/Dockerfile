@@ -5,7 +5,7 @@ RUN pip install --no-cache-dir uv
 COPY pyproject.toml .
 RUN uv pip install --system --no-cache \
       fastapi "uvicorn[standard]" uvloop orjson pydantic "httpx[http2]" \
-      model2vec numpy bm25s datasets huggingface-hub
+      model2vec numpy bm25s datasets huggingface-hub python-multipart
 
 FROM python:3.12-slim
 WORKDIR /app

@@ -175,8 +175,28 @@ def safety_rails(text: str) -> RailResult:
     return RailResult(Decision.ALLOW, layer="L2_safety")
 
 
+# Cross-lingual retrieval is measured, not assumed, and it does not work well
+# enough here to answer on. The corpus is Indic; an English query must match
+# through the static embedder's weak cross-lingual alignment (~0.25 cosine for a
+# correct hi/en pair vs ~0.59 same-language). Measured over 8 in-domain and 12
+# out-of-domain English queries, the two classes overlap almost entirely:
+#
+#   in-domain  cosine 0.117-0.490,  BM25 0.00-2.81
+#   off-topic  cosine 0.126-0.471,  BM25 0.00-5.08   (BM25 is *higher* for OOD)
+#
+# No threshold on either signal separates them, so a permissive cross-lingual
+# floor buys in-domain recall by letting off-topic English through -- it trades
+# a false-positive problem for a hallucination problem, which is worse. We
+# therefore hold cross-lingual answers to the same-language bar: English queries
+# about Indic-only content abstain rather than answer ungrounded. Fixing this
+# properly needs a true multilingual encoder on the retrieval path, which is
+# documented as a known limitation rather than hidden behind a tuned constant.
+CROSS_LINGUAL_ABSTAIN_THRESHOLD = 0.44
+
+
 def retrieval_rails(hits: list, abstain_threshold: float = 0.44,
-                    min_score_gap: float = 0.0) -> RailResult:
+                    min_score_gap: float = 0.0,
+                    query_lang: str | None = None) -> RailResult:
     """Layer 3 -- off-topic detection via retrieval confidence (free).
 
     Uses raw cosine rather than the fused RRF score: RRF is rank-based, so its
@@ -186,10 +206,19 @@ def retrieval_rails(hits: list, abstain_threshold: float = 0.44,
         return RailResult(Decision.ABSTAIN, "no_results", "empty retrieval", "L3_retrieval")
 
     top_cos = float(hits[0].meta.get("cosine", 0.0))
-    if top_cos < abstain_threshold:
+
+    # When the best passage is in another language, score against the
+    # cross-lingual scale instead of the same-language one.
+    top_lang = getattr(hits[0], "lang", "") or ""
+    cross = bool(query_lang and top_lang and top_lang != query_lang)
+    threshold = min(abstain_threshold, CROSS_LINGUAL_ABSTAIN_THRESHOLD) if cross \
+        else abstain_threshold
+
+    if top_cos < threshold:
         return RailResult(Decision.ABSTAIN, "off_topic",
-                          f"top cosine {top_cos:.3f} < {abstain_threshold}",
-                          "L3_retrieval", details={"top_cosine": top_cos})
+                          f"top cosine {top_cos:.3f} < {threshold}",
+                          "L3_retrieval",
+                          details={"top_cosine": top_cos, "cross_lingual": cross})
 
     if min_score_gap > 0 and len(hits) >= 5:
         cosines = [float(h.meta.get("cosine", 0.0)) for h in hits[:5]]

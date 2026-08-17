@@ -134,8 +134,9 @@ class Pipeline:
             cross_lingual: bool = True, use_cache: bool = True,
             deadline_ms: float = 200.0) -> dict:
         from answer.extractive import ABSTAIN_TEXT, answer_extractive
-        from guardrails.rails import (Decision, detect_lang, input_rails,
-                                      output_rails, retrieval_rails, safety_rails)
+        from guardrails.rails import (CROSS_LINGUAL_ABSTAIN_THRESHOLD, Decision,
+                                      detect_lang, input_rails, output_rails,
+                                      retrieval_rails, safety_rails)
         from retrieval.engine import tokenize
 
         ctx = RunContext(deadline_ms=deadline_ms)
@@ -190,15 +191,21 @@ class Pipeline:
 
         # ── Layer 3: retrieval confidence ──
         with Timer(ctx, "guard_retrieval"):
-            r3 = retrieval_rails(hits, self.abstain_threshold)
+            r3 = retrieval_rails(hits, self.abstain_threshold, query_lang=qlang)
         if r3.decision == Decision.ABSTAIN:
             ctx.event("abstain", category=r3.category)
             return self._abstain(ctx, qlang, hits, r3)
 
         # ── extractive answer ──
+        # The span score is on the same scale problem as the retrieval score, so
+        # a cross-lingual hit gets the cross-lingual floor here too.
+        span_threshold = self.abstain_threshold
+        if hits and (getattr(hits[0], "lang", "") or "") != qlang:
+            span_threshold = min(self.abstain_threshold,
+                                 CROSS_LINGUAL_ABSTAIN_THRESHOLD)
         with Timer(ctx, "extract"):
             ans = answer_extractive(clean, hits, self.embedder, tokenize,
-                                    self.abstain_threshold, lang=qlang)
+                                    span_threshold, lang=qlang)
 
         # ── Layer 4: groundedness ──
         with Timer(ctx, "guard_out"):
