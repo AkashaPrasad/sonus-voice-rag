@@ -108,8 +108,18 @@ async def lifespan(app: FastAPI):
                           int(os.getenv("LLM_TIMEOUT_MS", "4000")))
         await groq.start()
         log.info("groq enabled with %d keys", len(keys))
-    else:
-        log.warning("no GROQ keys -- quality path disabled, extractive still works")
+
+    deepseek = None
+    ds_key = os.getenv("DEEPSEEK_API_KEY", "").strip()
+    if ds_key:
+        from answer.deepseek import DeepSeekClient
+        deepseek = DeepSeekClient(ds_key, os.getenv("DEEPSEEK_MODEL", "deepseek-v4-flash"),
+                                  int(os.getenv("DEEPSEEK_TIMEOUT_MS", "12000")))
+        await deepseek.start()
+        log.info("deepseek enabled model=%s", deepseek.model)
+
+    if not (groq or deepseek):
+        log.warning("no LLM configured -- extractive path only")
 
     from stt.providers import build_stt
     stt_primary, stt_fallback = build_stt()
@@ -122,13 +132,15 @@ async def lifespan(app: FastAPI):
     gc.freeze()
 
     STATE.update(pipeline=pipeline, index=index, embedder=embedder, cache=cache,
-                 parents=parents, manifest=manifest, groq=groq, ready=True,
-                 stt=stt_primary, stt_fallback=stt_fallback,
+                 parents=parents, manifest=manifest, groq=groq, deepseek=deepseek,
+                 ready=True, stt=stt_primary, stt_fallback=stt_fallback,
                  boot_ms=round((time.perf_counter() - t0) * 1000, 1))
     log.info("ready in %.1fms  chunks=%d", STATE["boot_ms"], len(index.chunk_ids))
     yield
     if groq:
         await groq.close()
+    if deepseek:
+        await deepseek.close()
 
 
 app = FastAPI(title="Sonus", version="1.0.0", default_response_class=ORJSONResponse,
@@ -149,7 +161,24 @@ async def health():
         raise HTTPException(503, "warming up")
     return {"status": "ok", "ready": True, "boot_ms": STATE["boot_ms"],
             "manifest": STATE["manifest"], "cache": STATE["cache"].stats(),
-            "groq_enabled": STATE.get("groq") is not None}
+            "groq_enabled": STATE.get("groq") is not None,
+            "deepseek_enabled": STATE.get("deepseek") is not None}
+
+
+async def _compose(query: str, passages: list[str]):
+    """Run the quality-path LLM, preferring DeepSeek and falling back to Groq."""
+    ds, groq = STATE.get("deepseek"), STATE.get("groq")
+    if ds:
+        r = await ds.complete(query, passages)
+        if r.ok:
+            return r, "deepseek"
+        log.warning("deepseek failed: %s", r.error)
+    if groq:
+        r = await groq.complete(query, passages)
+        if r.ok:
+            return r, "groq"
+        log.warning("groq failed: %s", r.error)
+    return None, None
 
 
 @app.post("/ask")
@@ -157,10 +186,75 @@ async def ask(req: AskRequest):
     if not STATE.get("ready"):
         raise HTTPException(503, "warming up")
     pipeline = STATE["pipeline"]
+    # Retrieve deeper than the UI displays: the LLM filters the extras, and a
+    # relevant passage at rank 4-6 is common. Retrieval is sub-millisecond, so
+    # the extra depth is effectively free.
+    #
     # Retrieval is CPU-bound and sub-millisecond; a thread hop would cost more
     # than it saves, so run it inline on the event loop.
-    result = pipeline.run(req.query, lang=req.lang, k=req.k,
+    result = pipeline.run(req.query, lang=req.lang, k=max(req.k, 6),
                           cross_lingual=req.cross_lingual, use_cache=req.use_cache)
+
+    # Compose with the LLM whenever we have passages and are not already
+    # refusing. Two distinct jobs, both better done by a model that reads the
+    # text than by a cosine score:
+    #
+    #  * weak evidence  -- decide whether these passages answer the question
+    #  * confident hit  -- turn the extracted span into a fluent, cited answer,
+    #                      and catch the case where retrieval scored well but
+    #                      the passage does not actually address the question
+    #                      (measured: "what is my bank balance" scores 0.625
+    #                      against banking passages that never mention *your*
+    #                      balance).
+    #
+    # Grounding is preserved: the model sees only retrieved passages and is
+    # instructed to reply INSUFFICIENT_CONTEXT when they do not answer.
+    should_compose = (
+        not result.get("blocked")
+        and not result.get("abstained")
+        and bool(result.get("passages"))
+        and (STATE.get("deepseek") or STATE.get("groq"))
+    )
+
+    if should_compose:
+        extractive_answer = result.get("answer", "")
+        t0 = time.perf_counter()
+        # Send more context than the UI shows. Retrieval reliably places a
+        # relevant passage in the top few but not always at rank 1, and the
+        # model is a better filter of the extras than a cosine cutoff is.
+        ctx_passages = [p["text"] for p in result["passages"][:6]]
+        res, provider = await _compose(req.query, ctx_passages)
+        result["timings"]["llm"] = round((time.perf_counter() - t0) * 1000, 1)
+
+        if res and res.ok and not res.insufficient:
+            result.update(answer=res.text, mode="generative", abstained=False,
+                          provider=provider,
+                          citations=[{"passage_id": p["passage_id"], "text": p["text"],
+                                      "char_start": 0, "char_end": len(p["text"]),
+                                      "score": p["cosine"], "lang": p["lang"]}
+                                     for p in result["passages"][:1]])
+        elif res and res.insufficient:
+            # The model read the passages and found no answer. That is a far more
+            # reliable abstention signal than a similarity threshold.
+            from answer.extractive import ABSTAIN_TEXT
+            lang = result.get("lang", "en")
+            result.update(answer=ABSTAIN_TEXT.get(lang, ABSTAIN_TEXT["en"]),
+                          mode="abstain", abstained=True, citations=[],
+                          abstain_reason="llm_insufficient_context")
+        elif result.get("weak_evidence"):
+            # Provider down and nothing verified to fall back to.
+            from answer.extractive import ABSTAIN_TEXT
+            lang = result.get("lang", "en")
+            result.update(answer=ABSTAIN_TEXT.get(lang, ABSTAIN_TEXT["en"]),
+                          mode="abstain", abstained=True,
+                          abstain_reason="llm_unavailable")
+        else:
+            # Provider down but the extractive span was already verified by the
+            # groundedness rail -- keep it rather than blanking the answer.
+            result["answer"] = extractive_answer
+            result["llm_error"] = (res.error if res else "no provider")
+
+        result["total_ms"] = round(result["total_ms"] + result["timings"]["llm"], 3)
     return result
 
 

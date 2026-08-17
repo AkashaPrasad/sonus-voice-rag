@@ -18,11 +18,13 @@ COPY backend/ /app/backend/
 # Pre-download the static embedder so the container never fetches at boot.
 RUN python -c "from model2vec import StaticModel; StaticModel.from_pretrained('minishlab/potion-multilingual-128M')"
 # Build the index at image build time.
-ARG CORPUS_PROFILE=dev
-ARG CORPUS_LANGS=hi,ta,te,bn
-ARG CORPUS_ROWS=1000
-RUN python ingest/build_index.py --profile $CORPUS_PROFILE --langs $CORPUS_LANGS \
-      --rows $CORPUS_ROWS --strategy s5_hierarchical --out /app/index
+# Bilingual index: both sides of each parallel passage pair are indexed, so
+# English queries match English passages instead of retrieving Indic noise.
+ARG CORPUS_LANGS=hi,ta
+ARG CORPUS_ROWS=2500
+RUN python ingest/build_bilingual.py --langs $CORPUS_LANGS \
+      --rows $CORPUS_ROWS --strategy s5_hierarchical --out /app/index \
+ && rm -rf /root/.cache/huggingface/datasets /root/.cache/huggingface/hub/datasets*
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s \
   CMD python -c "import urllib.request,os;urllib.request.urlopen(f'http://127.0.0.1:{os.getenv(\"PORT\",8000)}/health')"

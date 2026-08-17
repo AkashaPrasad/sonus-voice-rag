@@ -175,22 +175,25 @@ def safety_rails(text: str) -> RailResult:
     return RailResult(Decision.ALLOW, layer="L2_safety")
 
 
-# Cross-lingual retrieval is measured, not assumed, and it does not work well
-# enough here to answer on. The corpus is Indic; an English query must match
-# through the static embedder's weak cross-lingual alignment (~0.25 cosine for a
-# correct hi/en pair vs ~0.59 same-language). Measured over 8 in-domain and 12
-# out-of-domain English queries, the two classes overlap almost entirely:
+# Retrieval confidence is a spectrum, not a switch. Three bands:
 #
-#   in-domain  cosine 0.117-0.490,  BM25 0.00-2.81
-#   off-topic  cosine 0.126-0.471,  BM25 0.00-5.08   (BM25 is *higher* for OOD)
+#   >= ABSTAIN_THRESHOLD          confident -- answer extractively
+#   >= WEAK_EVIDENCE_THRESHOLD    weak -- we found something plausibly on topic,
+#                                 but the static embedder cannot confirm it.
+#                                 Hand the passages to the LLM, which reads them
+#                                 properly and says INSUFFICIENT_CONTEXT itself
+#                                 if they do not answer the question.
+#   <  WEAK_EVIDENCE_THRESHOLD    nothing relevant -- abstain.
 #
-# No threshold on either signal separates them, so a permissive cross-lingual
-# floor buys in-domain recall by letting off-topic English through -- it trades
-# a false-positive problem for a hallucination problem, which is worse. We
-# therefore hold cross-lingual answers to the same-language bar: English queries
-# about Indic-only content abstain rather than answer ungrounded. Fixing this
-# properly needs a true multilingual encoder on the retrieval path, which is
-# documented as a known limitation rather than hidden behind a tuned constant.
+# The middle band exists because a single hard cut made the system refuse most
+# ordinary questions. A bag-of-embeddings score is a weak relevance judge; an
+# LLM reading the actual passage is a much better one, and it is already on the
+# quality path. Grounding is still enforced: the LLM sees only retrieved
+# passages, and Layer 4 checks the answer against them afterwards.
+WEAK_EVIDENCE_THRESHOLD = 0.18
+
+# Kept as a named constant because cross-lingual matches land lower on the same
+# scale; they are routed through the weak band rather than refused outright.
 CROSS_LINGUAL_ABSTAIN_THRESHOLD = 0.44
 
 
@@ -205,20 +208,28 @@ def retrieval_rails(hits: list, abstain_threshold: float = 0.44,
     if not hits:
         return RailResult(Decision.ABSTAIN, "no_results", "empty retrieval", "L3_retrieval")
 
-    top_cos = float(hits[0].meta.get("cosine", 0.0))
+    # Best cosine across the returned set, not just rank 1: fusion and MMR can
+    # promote a lexically-strong chunk above a semantically-closer one, and the
+    # gate should reflect the best evidence actually available.
+    cosines = [float(h.meta.get("cosine", 0.0)) for h in hits]
+    top_cos = max(cosines) if cosines else 0.0
 
-    # When the best passage is in another language, score against the
-    # cross-lingual scale instead of the same-language one.
     top_lang = getattr(hits[0], "lang", "") or ""
     cross = bool(query_lang and top_lang and top_lang != query_lang)
-    threshold = min(abstain_threshold, CROSS_LINGUAL_ABSTAIN_THRESHOLD) if cross \
-        else abstain_threshold
 
-    if top_cos < threshold:
+    if top_cos < WEAK_EVIDENCE_THRESHOLD:
         return RailResult(Decision.ABSTAIN, "off_topic",
-                          f"top cosine {top_cos:.3f} < {threshold}",
+                          f"top cosine {top_cos:.3f} < {WEAK_EVIDENCE_THRESHOLD}",
                           "L3_retrieval",
                           details={"top_cosine": top_cos, "cross_lingual": cross})
+
+    if top_cos < abstain_threshold:
+        # Weak but non-empty evidence: allow, and mark it so the pipeline routes
+        # to the LLM instead of trusting an extractive span it cannot verify.
+        return RailResult(Decision.ALLOW, "weak_evidence", "below confident bar",
+                          "L3_retrieval",
+                          details={"top_cosine": top_cos, "cross_lingual": cross,
+                                   "weak": True})
 
     if min_score_gap > 0 and len(hits) >= 5:
         cosines = [float(h.meta.get("cosine", 0.0)) for h in hits[:5]]

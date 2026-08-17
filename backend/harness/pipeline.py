@@ -196,25 +196,33 @@ class Pipeline:
             ctx.event("abstain", category=r3.category)
             return self._abstain(ctx, qlang, hits, r3)
 
+        # Weak evidence: something is plausibly on topic but the static
+        # embedder cannot confirm it. Skip the extractive span (we would be
+        # asserting a match we cannot verify) and let the LLM read the passages.
+        weak = bool(r3.details.get("weak"))
+
         # ── extractive answer ──
-        # The span score is on the same scale problem as the retrieval score, so
-        # a cross-lingual hit gets the cross-lingual floor here too.
-        span_threshold = self.abstain_threshold
-        if hits and (getattr(hits[0], "lang", "") or "") != qlang:
-            span_threshold = min(self.abstain_threshold,
-                                 CROSS_LINGUAL_ABSTAIN_THRESHOLD)
         with Timer(ctx, "extract"):
-            ans = answer_extractive(clean, hits, self.embedder, tokenize,
-                                    span_threshold, lang=qlang)
+            if weak:
+                ans = None
+            else:
+                ans = answer_extractive(clean, hits, self.embedder, tokenize,
+                                        self.abstain_threshold, lang=qlang)
 
         # ── Layer 4: groundedness ──
         with Timer(ctx, "guard_out"):
-            if not ans.abstained:
+            if ans is not None and not ans.abstained:
                 r4 = output_rails(ans.text, [h.text for h in hits], tokenize,
                                   self.groundedness_threshold)
                 if r4.decision != Decision.ALLOW:
                     ctx.event("output_blocked", category=r4.category)
-                    return self._abstain(ctx, qlang, hits, r4)
+                    # Ungrounded span is not proof the passages are useless --
+                    # downgrade to weak so the LLM still gets a turn.
+                    ctx.event("downgraded_to_weak", category=r4.category)
+                    weak, ans = True, None
+
+        if ans is None:
+            return self._needs_llm(ctx, qlang, hits, r3)
 
         result = {
             "answer": ans.text,
@@ -240,6 +248,29 @@ class Pipeline:
         if use_cache and not ans.abstained:
             self.cache.put(clean, qvec, result)
         return result
+
+    def _needs_llm(self, ctx: RunContext, lang: str, hits: list, rail) -> dict:
+        """Weak-evidence state: retrieval found candidates it cannot confirm.
+
+        Returned as a non-terminal result -- the route sends the passages to the
+        LLM, which either answers from them or says INSUFFICIENT_CONTEXT itself.
+        Rendered as 'searching' rather than an answer, so the UI never shows an
+        unverified span as if it were grounded.
+        """
+        return {
+            "answer": "",
+            "mode": "needs_llm", "abstained": False, "blocked": False,
+            "weak_evidence": True,
+            "confidence": float(rail.details.get("top_cosine", 0.0)),
+            "lang": lang, "citations": [],
+            "passages": [{"passage_id": h.parent_id, "text": h.text, "lang": h.lang,
+                          "score": round(h.score, 5),
+                          "cosine": round(float(h.meta.get("cosine", 0)), 4),
+                          "cross_lingual": h.lang != lang}
+                         for h in hits],
+            "trace_id": ctx.trace_id, "timings": ctx.timings,
+            "total_ms": round(ctx.elapsed_ms(), 3), "events": ctx.events,
+        }
 
     # ── terminal states ──
     def _blocked(self, ctx: RunContext, rail, lang: str) -> dict:
