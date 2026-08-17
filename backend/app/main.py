@@ -1,4 +1,4 @@
-"""Vaani API.
+"""Sonus API.
 
 The index is loaded once at startup and warmed with synthetic queries so the
 first real request does not pay JIT, page-fault, or allocation costs. gc is
@@ -29,7 +29,7 @@ from pydantic import BaseModel, Field  # noqa: E402
 
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO").upper(),
                     format="%(asctime)s %(levelname)s %(name)s %(message)s")
-log = logging.getLogger("vaani")
+log = logging.getLogger("sonus")
 
 STATE: dict = {"ready": False, "manifest": {}, "boot_ms": 0.0}
 
@@ -131,7 +131,7 @@ async def lifespan(app: FastAPI):
         await groq.close()
 
 
-app = FastAPI(title="Vaani", version="1.0.0", default_response_class=ORJSONResponse,
+app = FastAPI(title="Sonus", version="1.0.0", default_response_class=ORJSONResponse,
               lifespan=lifespan)
 
 app.add_middleware(

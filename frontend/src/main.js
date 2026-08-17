@@ -1,8 +1,8 @@
-/* Vaani client.
+/* Sonus client.
    The HUD renders the server's own per-stage timings, so what a judge sees is
    the same measurement the benchmark records -- not a client-side estimate. */
 
-const API = import.meta.env.VITE_API_BASE || "https://vaani-api-production.up.railway.app";
+const API = import.meta.env.VITE_API_BASE || "https://sonus-api-production.up.railway.app";
 const BUDGET_MS = 200;
 
 const $ = (id) => document.getElementById(id);

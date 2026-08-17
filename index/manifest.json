@@ -1,0 +1,27 @@
+{
+  "corpus_profile": "dev",
+  "languages": [
+    "hi",
+    "ta",
+    "te",
+    "bn"
+  ],
+  "rows_per_lang": 1000,
+  "n_passages": 4000,
+  "n_chunks": 9196,
+  "chunk_strategy": "s5_hierarchical",
+  "embed_model": "minishlab/potion-multilingual-128M",
+  "embed_dim": 256,
+  "quantization": "int8",
+  "mean_chunk_tokens": 68.2,
+  "load_seconds": 21.64,
+  "chunk_seconds": 0.55,
+  "build_seconds": 24.61,
+  "index_bytes": 27082455,
+  "int8_bytes": 2354176,
+  "float32_bytes": 9416704,
+  "built_at": "2026-08-17T14:57:03Z",
+  "git_sha": "ab07885",
+  "dense_build_s": 0.24,
+  "sparse_build_s": 0.31
+}
