@@ -407,7 +407,12 @@ DEFAULT_SAMPLES = [
 
 def load_sample_questions() -> list[dict]:
     """Build the sample list from the generated file, falling back to defaults."""
-    path = ROOT / "bench" / "demo_questions.json"
+    # Shipped inside backend/ so it is always in the image: bench/ is excluded
+    # from the Docker context, and .dockerignore negation after a directory
+    # exclusion is not dependable.
+    path = Path(__file__).with_name("sample_questions.json")
+    if not path.exists():
+        path = ROOT / "bench" / "demo_questions.json"
     if not path.exists():
         return DEFAULT_SAMPLES
 
@@ -417,10 +422,16 @@ def load_sample_questions() -> list[dict]:
         return DEFAULT_SAMPLES
 
     names = {"en": ("English", "English"), "hi": ("Hindi", "हिन्दी"),
-             "ta": ("Tamil", "தமிழ்"), "te": ("Telugu", "తెలుగు"),
-             "bn": ("Bengali", "বাংলা")}
+             "bn": ("Bengali", "বাংলা"), "ta": ("Tamil", "தமிழ்"),
+             "te": ("Telugu", "తెలుగు"), "mr": ("Marathi", "मराठी"),
+             "gu": ("Gujarati", "ગુજરાતી"), "kn": ("Kannada", "ಕನ್ನಡ"),
+             "ml": ("Malayalam", "മലയാളം"), "pa": ("Punjabi", "ਪੰਜਾਬੀ"),
+             "or": ("Odia", "ଓଡ଼ିଆ"), "ur": ("Urdu", "اردو")}
+    order = ["en", "hi", "bn", "ta", "te", "mr"]
+    ranked_codes = sorted(data, key=lambda c: (order.index(c) if c in order else 99, c))
     out = []
-    for code, items in data.items():
+    for code in ranked_codes:
+        items = data[code]
         if not items:
             continue
         label, native = names.get(code, (code.upper(), code.upper()))

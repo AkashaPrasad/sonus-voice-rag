@@ -1,15 +1,15 @@
-Ran 60 queries over 587,239 chunks
+Ran 80 queries over 587,239 chunks
 
 stage            avg      p50      p95      p99   (ms)
-guard_in        0.04     0.03     0.04     0.39
+guard_in        0.03     0.03     0.04     0.05
 cache           0.00     0.00     0.00     0.00
-embed           0.09     0.09     0.14     0.20
-search          8.18     8.43    10.58    10.96
-rerank          0.36     0.39     0.50     0.59
-guard_out       0.12     0.12     0.16     0.27
-extract         0.54     0.51     0.93     1.00
+embed           0.11     0.10     0.19     0.25
+search          7.98     8.15     9.80    13.01
+rerank          0.43     0.46     0.67     1.00
+guard_out       0.10     0.10     0.14     0.30
+extract         0.59     0.58     0.89     1.02
 -----------------------------------------------
-total           9.38     9.74    11.90    12.23
+total           9.29     9.40    11.03    14.80
 
-Latency budget: 200.0ms | p95 total: 11.90ms
+Latency budget: 200.0ms | p95 total: 11.03ms
 PASS: within budget (<200ms)

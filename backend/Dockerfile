@@ -15,8 +15,6 @@ COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/pytho
 COPY --from=builder /usr/local/bin /usr/local/bin
 COPY ingest/ /app/ingest/
 COPY backend/ /app/backend/
-# Verified sample questions served by /sample-queries.
-COPY bench/demo_questions.json /app/bench/demo_questions.json
 # Pre-download the static embedder so the container never fetches at boot.
 RUN python -c "from model2vec import StaticModel; StaticModel.from_pretrained('minishlab/potion-multilingual-128M')"
 # Build the index at image build time.
