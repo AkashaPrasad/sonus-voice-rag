@@ -1,15 +1,24 @@
-Ran 80 queries over 587,239 chunks
+Ran 120 queries over 587,239 chunks
 
-stage            avg      p50      p95      p99   (ms)
-guard_in        0.03     0.03     0.04     0.05
-cache           0.00     0.00     0.00     0.00
-embed           0.11     0.10     0.19     0.25
-search          7.98     8.15     9.80    13.01
-rerank          0.43     0.46     0.67     1.00
-guard_out       0.10     0.10     0.14     0.30
-extract         0.59     0.58     0.89     1.02
------------------------------------------------
-total           9.29     9.40    11.03    14.80
+stage                  avg      p50      p95      p99   (ms)
+guard_in              0.04     0.04     0.06     0.07
+cache                 0.00     0.00     0.00     0.00
+embed                 0.14     0.13     0.22     0.27
+search                9.54     9.85    11.65    12.12
+  ├ dense             9.05     9.30    11.08    11.66
+  ├ sparse            2.11     1.76     3.88     4.35
+  └ fuse+rerank       0.47     0.47     0.73     0.98
+guard_out             0.17     0.17     0.24     0.68
+extract               0.77     0.77     1.31     1.61
+-----------------------------------------------------
+rag_core             10.67    10.91    13.01    13.37
+total                10.72    10.97    13.06    13.42
 
-Latency budget: 200.0ms | p95 total: 11.03ms
+Latency budget: 200.0ms | p95 RAG core: 13.01ms (15.4x headroom)
 PASS: within budget (<200ms)
+
+rag_core = guard_in + cache + embed + search + guard_out + extract,
+i.e. everything inside the latency contract. The indented rows are sub-timings
+inside `search` and are NOT summed -- dense and sparse run concurrently, so
+adding them would double-count the overlap. The LLM compose call and the
+network hop are external and are measured separately -- never folded in here.

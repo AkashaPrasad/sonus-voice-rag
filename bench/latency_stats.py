@@ -25,16 +25,26 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "backend"))
 
-# Displayed in pipeline order. `embed` covers query vectorization; `search` sums
-# the dense and sparse sweeps; `rerank` is fusion + MMR.
+# Displayed in pipeline order. `embed` covers query vectorization; `search` is
+# the enclosing `retrieve` span, NOT dense+sparse -- those two now run
+# concurrently, so summing them would double-count the overlap and report a
+# core figure larger than the wall clock. `retrieve` already contains fusion and
+# reranking, so they are shown as an informational split rather than summed.
 GROUPS = {
     "guard_in": ["guard_in"],
     "cache": ["cache_probe"],
     "embed": ["embed"],
-    "search": ["dense", "sparse"],
-    "rerank": ["fuse", "rerank"],
+    "search": ["retrieve"],
     "guard_out": ["guard_retrieval", "guard_out"],
     "extract": ["extract"],
+}
+
+# Sub-timings inside `retrieve`. Reported for visibility, never added to the
+# core total. dense and sparse overlap by design.
+SUBSTAGES = {
+    "  ├ dense": ["dense"],
+    "  ├ sparse": ["sparse"],
+    "  └ fuse+rerank": ["fuse", "rerank"],
 }
 
 DEFAULT_QUERIES = [
@@ -81,6 +91,22 @@ def run(index_path: Path, n: int, warmup: int) -> dict:
     stages: dict[str, list[float]] = {}
     for name, keys in GROUPS.items():
         stages[name] = [sum(r.get(k, 0.0) for k in keys) for r in rows]
+    core_names = list(GROUPS)
+    # Insert the retrieve sub-timings directly beneath `search` for readability.
+    sub = {name: [sum(r.get(k, 0.0) for k in keys) for r in rows]
+           for name, keys in SUBSTAGES.items()}
+    ordered: dict[str, list[float]] = {}
+    for name in core_names:
+        ordered[name] = stages[name]
+        if name == "search":
+            ordered.update(sub)
+    stages = ordered
+    # `rag_core` is the sum of the measured stages -- the work this system owns
+    # and the number the 200ms budget governs. `total` is the wall clock of the
+    # same in-process run, which also carries interpreter overhead between
+    # stages. They differ by microseconds here precisely because nothing
+    # external is in the path.
+    stages["rag_core"] = [sum(stages[n][i] for n in core_names) for i in range(len(rows))]
     stages["total"] = totals
 
     return {
@@ -102,7 +128,8 @@ def run(index_path: Path, n: int, warmup: int) -> dict:
 
 def render(stats: dict, budget: float) -> str:
     total = stats["stages"]["total"]
-    passed = total["p95"] < budget
+    core = stats["stages"]["rag_core"]
+    passed = core["p95"] < budget
     w = max(len(k) for k in stats["stages"]) + 2
 
     lines = [
@@ -111,18 +138,25 @@ def render(stats: dict, budget: float) -> str:
         f"{'stage'.ljust(w)}{'avg':>9}{'p50':>9}{'p95':>9}{'p99':>9}   (ms)",
     ]
     for name, s in stats["stages"].items():
-        if name == "total":
+        if name == "rag_core":
             lines.append("-" * (w + 36))
         lines.append(
             f"{name.ljust(w)}{s['avg']:>9.2f}{s['p50']:>9.2f}"
             f"{s['p95']:>9.2f}{s['p99']:>9.2f}"
         )
+    headroom = f" ({budget / core['p95']:.1f}x headroom)" if core["p95"] else ""
     lines += [
         "",
-        f"Latency budget: {budget:.1f}ms | p95 total: {total['p95']:.2f}ms",
+        f"Latency budget: {budget:.1f}ms | p95 RAG core: {core['p95']:.2f}ms{headroom}",
         f"{'PASS' if passed else 'FAIL'}: "
         f"{'within' if passed else 'over'} budget "
         f"({'<' if passed else '>'}{budget:.0f}ms)",
+        "",
+        "rag_core = guard_in + cache + embed + search + guard_out + extract,",
+        "i.e. everything inside the latency contract. The indented rows are sub-timings",
+        "inside `search` and are NOT summed -- dense and sparse run concurrently, so",
+        "adding them would double-count the overlap. The LLM compose call and the",
+        "network hop are external and are measured separately -- never folded in here.",
     ]
     return "\n".join(lines)
 
@@ -141,7 +175,7 @@ def main() -> None:
     print("\n" + report + "\n")
 
     stats["budget_ms"] = a.budget
-    stats["verdict"] = "PASS" if stats["stages"]["total"]["p95"] < a.budget else "FAIL"
+    stats["verdict"] = "PASS" if stats["stages"]["rag_core"]["p95"] < a.budget else "FAIL"
     Path(a.json).write_text(json.dumps(stats, indent=2))
     Path(a.json).with_suffix(".txt").write_text(report + "\n")
 
