@@ -13,6 +13,7 @@ const LIVE_STAGE_META = {
   cache_probe: { label: "CACHE PROBE", color: "#00f0ff" },
   cache: { label: "CACHE HIT", color: "#00f0ff" },
   embed: { label: "VECTOR EMBED", color: "#ff9500" },
+  retrieve: { label: "HYBRID RETRIEVE", color: "#33ff77" },
   search: { label: "HYBRID SEARCH", color: "#33ff77" },
   dense: { label: "DENSE KNN", color: "#33ff77" },
   sparse: { label: "SPARSE BM25", color: "#2ed573" },
@@ -24,12 +25,26 @@ const LIVE_STAGE_META = {
   llm: { label: "LLM SYNTH", color: "#fd79a8" },
 };
 
+/* Mirrors CORE_STAGES in backend/harness/pipeline.py: the stages whose
+   durations tile the budget without overlapping. `retrieve` is the enclosing
+   span for the index sweep. */
+const CORE_STAGES = new Set([
+  "guard_in", "cache_probe", "cache", "embed", "retrieve",
+  "guard_retrieval", "extract", "guard_out",
+]);
+
+/* Sub-timings inside `retrieve`. Shown as a nested breakdown, never drawn as
+   their own bar segments -- dense and sparse run concurrently on the server, so
+   laying them end-to-end would depict time that was never spent. */
+const RETRIEVE_SUBSTAGES = ["dense", "sparse", "fuse", "rerank"];
+
 const LIVE_STAGE_ORDER = [
   "guard_in",
   "cache_probe",
   "cache",
   "embed",
   "search",
+  "retrieve",
   "dense",
   "sparse",
   "fuse",
@@ -40,18 +55,23 @@ const LIVE_STAGE_ORDER = [
   "llm",
 ];
 
-/* Measured by bench/latency_stats.py against the deployed index.
-   Re-run it and paste the result here after any index or retrieval change --
-   these are shown to viewers as real numbers, so stale values would be a lie. */
+/* Measured by `bench/latency_stats.py --index index_multi`, n=120 cache-cold
+   queries over 587,239 chunks. Re-run it and paste the result here after
+   any index or retrieval change -- these are shown to viewers as real numbers,
+   so stale values would be a lie.
+   The indented rows are sub-timings inside `search`; dense and sparse run
+   concurrently, so they are shown but never summed into RAG CORE. */
 const BENCHMARK_ROWS = [
-  { stage: "guard_in", avg: 0.03, p50: 0.03, p95: 0.04, p99: 0.05 },
+  { stage: "guard_in", avg: 0.04, p50: 0.04, p95: 0.06, p99: 0.07 },
   { stage: "cache", avg: 0.00, p50: 0.00, p95: 0.00, p99: 0.00 },
-  { stage: "embed", avg: 0.11, p50: 0.10, p95: 0.19, p99: 0.25 },
-  { stage: "search", avg: 7.98, p50: 8.15, p95: 9.80, p99: 13.01 },
-  { stage: "rerank", avg: 0.43, p50: 0.46, p95: 0.67, p99: 1.00 },
-  { stage: "guard_out", avg: 0.10, p50: 0.10, p95: 0.14, p99: 0.30 },
-  { stage: "extract", avg: 0.59, p50: 0.58, p95: 0.89, p99: 1.02 },
-  { stage: "total", avg: 9.29, p50: 9.40, p95: 11.03, p99: 14.80 },
+  { stage: "embed", avg: 0.14, p50: 0.13, p95: 0.22, p99: 0.27 },
+  { stage: "search", avg: 9.54, p50: 9.85, p95: 11.65, p99: 12.12 },
+  { stage: "├ dense", avg: 9.05, p50: 9.30, p95: 11.08, p99: 11.66 },
+  { stage: "├ sparse", avg: 2.11, p50: 1.76, p95: 3.88, p99: 4.35 },
+  { stage: "└ fuse+rerank", avg: 0.47, p50: 0.47, p95: 0.73, p99: 0.98 },
+  { stage: "guard_out", avg: 0.17, p50: 0.17, p95: 0.24, p99: 0.68 },
+  { stage: "extract", avg: 0.77, p50: 0.77, p95: 1.31, p99: 1.61 },
+  { stage: "RAG CORE", avg: 10.67, p50: 10.91, p95: 13.01, p99: 13.37 },
 ];
 
 const BENCHMARK_BUDGET_MS = 200;
@@ -164,6 +184,11 @@ const el = {
   track: $("track"),
   legend: $("legend"),
   totalMs: $("totalMs"),
+  coreMs: $("coreMs"),
+  llmMs: $("llmMs"),
+  budgetLed: $("budgetLed"),
+  budgetVerdict: $("budgetVerdict"),
+  retrievalMs: $("retrievalMs"),
   transcript: $("transcript"),
   answerBox: $("answerBox"),
   sources: $("sources"),
@@ -294,7 +319,7 @@ function setAppState(next, detailOverride) {
 function renderBenchmarkLedger() {
   const tbody = el.benchTable.querySelector("tbody");
   tbody.innerHTML = BENCHMARK_ROWS.map((row) => `
-    <tr>
+    <tr class="${row.stage === "RAG CORE" ? "bench-total" : ""}${/^[├└]/.test(row.stage) ? "bench-sub" : ""}">
       <td>${row.stage}</td>
       <td>${row.avg.toFixed(2)}</td>
       <td>${row.p50.toFixed(2)}</td>
@@ -303,12 +328,14 @@ function renderBenchmarkLedger() {
     </tr>
   `).join("");
 
-  const total = BENCHMARK_ROWS.find((row) => row.stage === "total");
+  const total = BENCHMARK_ROWS.find((row) => row.stage === "RAG CORE");
   const p95 = total?.p95 ?? 0;
   const budgetMultiple = p95 ? BENCHMARK_BUDGET_MS / p95 : 0;
+  /* This ledger is the RAG core only -- bench/latency_stats.py never times the
+     LLM hop -- so it is labelled as such rather than as an end-to-end total. */
   el.benchSummary.innerHTML = `
-    <span>P95 TOTAL: <strong>${p95.toFixed(2)}ms</strong></span> · 
-    <span><strong>${budgetMultiple.toFixed(1)}x</strong> UNDER BUDGET</span>
+    <span>RAG CORE P95: <strong>${p95.toFixed(2)}ms</strong></span> · 
+    <span><strong>${budgetMultiple.toFixed(1)}x</strong> UNDER 200MS BUDGET</span>
   `;
 }
 
@@ -400,25 +427,83 @@ function normalizeLiveStages(timings = {}) {
   });
 }
 
-function renderHUD(timings, totalMs) {
+const RETRIEVAL_BUDGET_MS = 25;
+
+function renderHUD(timings, totalMs, coreMs, retrievalMs, cached) {
   const safeTotal = Number(totalMs) || 0;
-  const stages = normalizeLiveStages(timings);
-  const scaleMax = Math.max(safeTotal, BENCHMARK_BUDGET_MS, 1);
-  const widthPct = Math.min((safeTotal / scaleMax) * 100, 100);
+  const t = timings || {};
+  const stages = normalizeLiveStages(t);
 
-  el.track.innerHTML = stages.map((stage) => (
-    `<div class="seg" style="width:${safeTotal ? (stage.value / safeTotal) * 100 : 0}%;background:${stage.color}" title="${stage.label}: ${stage.value.toFixed(2)}ms"></div>`
+  /* Only non-overlapping stages become bar segments. Sub-timings inside
+     `retrieve` are listed underneath it instead. */
+  const coreStages = stages.filter((s) => CORE_STAGES.has(s.key));
+  const offStages = stages.filter(
+    (s) => !CORE_STAGES.has(s.key) && !RETRIEVE_SUBSTAGES.includes(s.key));
+  const subStages = stages.filter((s) => RETRIEVE_SUBSTAGES.includes(s.key));
+
+  /* Prefer the server's core_ms -- computed from the same stage set the
+     benchmark harness uses. Sum client-side only for an older backend. */
+  const safeCore = coreMs != null && Number(coreMs) >= 0
+    ? Number(coreMs)
+    : coreStages.reduce((sum, s) => sum + s.value, 0);
+
+  /* The bar is scaled to the budget, not to the observed total. A 900ms wall
+     clock rendered full-width tells you nothing; 11ms against a 200ms rule
+     tells you the pipeline has ~18x of headroom. */
+  const corePct = Math.min((safeCore / BENCHMARK_BUDGET_MS) * 100, 100);
+  el.track.style.width = `${corePct}%`;
+  el.track.innerHTML = coreStages.map((stage) => (
+    `<div class="seg" style="width:${safeCore ? (stage.value / safeCore) * 100 : 0}%;background:${stage.color}" title="${stage.label}: ${stage.value.toFixed(2)}ms"></div>`
   )).join("");
-  el.track.style.width = `${widthPct}%`;
 
-  el.legend.innerHTML = stages.length
-    ? stages.map((stage) => (
-      `<li><span class="sw" style="background:${stage.color}"></span><span class="nm">${stage.label}</span><span class="ms">${stage.value.toFixed(2)}ms</span></li>`
-    )).join("")
+  const row = (stage, cls = "") => (
+    `<li${cls ? ` class="${cls}"` : ""}><span class="sw" style="background:${stage.color}"></span><span class="nm">${stage.label}</span><span class="ms">${stage.value.toFixed(2)}ms</span></li>`
+  );
+
+  const rows = [];
+  coreStages.forEach((stage) => {
+    rows.push(row(stage));
+    // Nest the concurrent sweep timings directly under their parent span.
+    if (stage.key === "retrieve") subStages.forEach((sub) => rows.push(row(sub, "sub-stage")));
+  });
+  if (offStages.length) {
+    rows.push(`<li class="legend-divider"><span class="nm">OFF-BUDGET · EXTERNAL</span></li>`);
+    offStages.forEach((stage) => rows.push(row(stage, "off-budget")));
+  }
+
+  el.legend.innerHTML = rows.length
+    ? rows.join("")
     : `<li><span class="sw" style="background:rgba(255,255,255,0.1)"></span><span class="nm">AWAITING QUERY</span><span class="ms">—</span></li>`;
 
-  const formattedMs = safeTotal ? safeTotal.toFixed(2).padStart(6, "0") : "000.00";
-  el.totalMs.textContent = formattedMs;
+  el.coreMs.textContent = safeCore ? safeCore.toFixed(2).padStart(6, "0") : "000.00";
+  el.totalMs.textContent = safeTotal ? safeTotal.toFixed(2) : "000.00";
+
+  const llm = Number(t.llm) || 0;
+  el.llmMs.textContent = llm ? `${llm.toFixed(0)}MS` : "—";
+
+  /* T_retrieval carries its own 25ms sub-budget in the spec, so it is scored
+     against that rather than against the 200ms envelope. */
+  const retr = Number(retrievalMs) || 0;
+  if (el.retrievalMs) {
+    el.retrievalMs.textContent = retr ? `${retr.toFixed(2)}MS` : "—";
+    el.retrievalMs.classList.toggle("pass", retr > 0 && retr < RETRIEVAL_BUDGET_MS);
+  }
+
+  const within = safeCore > 0 && safeCore < BENCHMARK_BUDGET_MS;
+  const idle = safeCore === 0;
+  /* A cache hit skips retrieval entirely, so quoting a headroom multiple off it
+     would advertise a number the pipeline never had to earn. Label it instead. */
+  el.budgetVerdict.textContent = idle
+    ? "—"
+    : cached
+      ? "CACHE HIT · NOT A PIPELINE RUN"
+      : within
+        ? `PASS · ${(BENCHMARK_BUDGET_MS / safeCore).toFixed(0)}× HEADROOM`
+        : "OVER BUDGET";
+  el.budgetVerdict.classList.toggle("pass", within && !cached);
+  el.budgetVerdict.classList.toggle("fail", !idle && !within);
+  el.budgetVerdict.classList.toggle("cached", Boolean(cached) && !idle);
+  el.budgetLed?.classList.toggle("pass", within);
 }
 
 function renderTranscript(text, partial = false) {
@@ -566,7 +651,7 @@ async function ask(query, inputMeta = { source: "typed" }) {
     lastRun = data;
     renderTraceMeta();
     renderAnswer(data);
-    renderHUD(data.timings, data.total_ms);
+    renderHUD(data.timings, data.total_ms, data.core_ms, data.retrieval_ms, data.cached);
     setAppState("responding");
     scheduleSettle(el.mode.value === "strict" ? 2400 : 3400);
   } catch (error) {
@@ -875,7 +960,7 @@ async function init() {
   renderBenchmarkLedger();
   renderSampleTabs();
   renderSampleChips();
-  renderHUD({}, 0);
+  renderHUD({}, 0, 0, 0, null);
   renderTranscript("");
   renderTraceMeta();
   setAppState("idle");

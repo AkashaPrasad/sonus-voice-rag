@@ -552,6 +552,21 @@ body {
   font-family: var(--font-mono);
   font-size: 0.65rem;
   color: var(--ink-dim);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  letter-spacing: 0.08em;
+  text-align: center;
+  /* The hero label carries the claim, so it gets the live ink; the qualifier
+     under it names the stages so nobody has to guess what "core" includes. */
+  color: var(--crt-green);
+}
+
+.readout-sub {
+  color: var(--ink-faint);
+  font-size: 0.55rem;
+  letter-spacing: 0.12em;
 }
 
 .digital-7seg-hero {
@@ -573,6 +588,93 @@ body {
   font-family: var(--font-mono);
   font-size: 0.65rem;
   color: var(--crt-green);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.budget-led {
+  color: var(--ink-faint);
+  transition: color 140ms ease;
+}
+.budget-led.pass {
+  color: var(--crt-green);
+}
+
+.budget-verdict {
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 2px 7px;
+  border-radius: 3px;
+  border: 1px solid var(--chassis-border);
+  color: var(--ink-faint);
+}
+.budget-verdict.pass {
+  color: var(--crt-green);
+  border-color: rgba(51, 255, 119, 0.45);
+  background: rgba(51, 255, 119, 0.09);
+}
+.budget-verdict.cached {
+  color: var(--crt-cyan);
+  border-color: rgba(0, 240, 255, 0.45);
+  background: rgba(0, 240, 255, 0.09);
+}
+.budget-verdict.fail {
+  color: var(--led-red);
+  border-color: rgba(255, 71, 87, 0.45);
+  background: rgba(255, 71, 87, 0.09);
+}
+
+/* Secondary block: the honest wall clock. Kept present and readable but
+   deliberately quiet -- it is context for the hero number, not a rival to it. */
+.readout-secondary {
+  width: 100%;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--chassis-border);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.secondary-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--ink-faint);
+}
+
+.secondary-key {
+  letter-spacing: 0.08em;
+}
+
+.secondary-val {
+  color: var(--ink-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+/* T_retrieval is a real sub-budget with its own target, so it reads slightly
+   brighter than the off-budget rows below it. */
+.secondary-row.is-subbudget .secondary-key {
+  color: var(--ink-dim);
+}
+.secondary-val.pass,
+.secondary-row.is-subbudget .secondary-val.pass {
+  color: var(--crt-green);
+}
+
+.secondary-note {
+  margin-top: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.53rem;
+  line-height: 1.5;
+  color: var(--ink-faint);
+  text-align: left;
 }
 
 .vu-meter-panel {
@@ -585,6 +687,12 @@ body {
   font-family: var(--font-mono);
   font-size: 0.65rem;
   color: var(--ink-dim);
+}
+
+.vu-title-sub {
+  color: var(--ink-faint);
+  font-size: 0.55rem;
+  letter-spacing: 0.1em;
 }
 
 .hud-bar-housing {
@@ -631,6 +739,51 @@ body {
   align-items: center;
   gap: 6px;
   color: var(--ink-dim);
+}
+
+/* Sub-timings inside HYBRID RETRIEVE. Indented and dimmed because they are a
+   breakdown of the row above, not additional budget spend -- dense and sparse
+   overlap, so they do not sum to their parent. */
+.vu-legend-list li.sub-stage {
+  padding-left: 12px;
+  opacity: 0.72;
+  font-size: 0.95em;
+}
+.vu-legend-list li.sub-stage .nm::before {
+  content: "└ ";
+  color: var(--ink-faint);
+}
+
+/* Off-budget stages stay in the legend -- hiding them would be the dishonest
+   version of this panel -- but read as annotation, not as budget spend. */
+.vu-legend-list li.off-budget {
+  color: var(--ink-faint);
+  opacity: 0.75;
+}
+.vu-legend-list li.off-budget .ms {
+  font-style: italic;
+}
+
+.vu-legend-list li.legend-divider {
+  grid-column: 1 / -1;
+  color: var(--ink-faint);
+  font-size: 0.55rem;
+  letter-spacing: 0.12em;
+  margin-top: 3px;
+  padding-top: 4px;
+  border-top: 1px dashed var(--chassis-border);
+}
+
+.vu-legend-list .ms {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+
+.hud-note {
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.1em;
+  color: var(--ink-faint);
 }
 
 .sw {
@@ -1030,4 +1183,19 @@ body {
     flex-direction: column;
     gap: 10px;
   }
+}
+
+/* Benchmark ledger: the RAG CORE row is the verdict line, the indented dense/
+   sparse rows are sub-timings inside `search` and are not summed into it. */
+.bench-table tr.bench-total td {
+  border-top: 1px solid var(--chassis-border);
+  color: var(--crt-green);
+  font-weight: 700;
+}
+.bench-table tr.bench-sub td {
+  color: var(--ink-faint);
+  font-size: 0.95em;
+}
+.bench-table tr.bench-sub td:first-child {
+  padding-left: 10px;
 }

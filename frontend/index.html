@@ -112,17 +112,42 @@
       </div>
 
       <div class="digital-readout-unit">
-        <div class="readout-label">LATENCY TIMING</div>
+        <div class="readout-label">
+          T_PIPELINE · THE 200MS CONTRACT
+          <span class="readout-sub">RETRIEVE + FUSE + RERANK + GUARDRAILS + EXTRACT · ZERO EXTERNAL CALLS</span>
+        </div>
         <div class="digital-7seg-hero">
-          <span id="totalMs">000.00</span><span class="seg-unit">MS</span>
+          <span id="coreMs">000.00</span><span class="seg-unit">MS</span>
         </div>
         <div class="budget-status-bar">
-          <span class="budget-led">● 200MS BUDGET CONTRACT</span>
+          <span class="budget-led" id="budgetLed">● 200MS BUDGET CONTRACT</span>
+          <span class="budget-verdict" id="budgetVerdict">—</span>
+        </div>
+
+        <div class="readout-secondary">
+          <div class="secondary-row is-subbudget">
+            <span class="secondary-key">T_RETRIEVAL · SUB-BUDGET 25MS</span>
+            <span class="secondary-val"><span id="retrievalMs">—</span></span>
+          </div>
+          <div class="secondary-row">
+            <span class="secondary-key">T_QUALITY_TTFT · LLM, OFF-BUDGET</span>
+            <span class="secondary-val"><span id="llmMs">—</span></span>
+          </div>
+          <div class="secondary-row">
+            <span class="secondary-key">WALL CLOCK · T_PIPELINE + LLM</span>
+            <span class="secondary-val"><span id="totalMs">000.00</span>MS</span>
+          </div>
+          <p class="secondary-note">
+            The LLM compose hop runs on another provider's machine across an
+            ocean — physically impossible inside 200MS, so it is reported
+            separately and never folded into the contract. T_PIPELINE above is
+            the part this system owns and is held to.
+          </p>
         </div>
       </div>
 
       <div class="vu-meter-panel">
-        <div class="vu-title">STAGE TIMING BREAKDOWN</div>
+        <div class="vu-title">STAGE TIMING BREAKDOWN <span class="vu-title-sub">SCALED TO 200MS BUDGET</span></div>
         <div class="hud-bar-housing" id="hud" role="img" aria-label="Latency timing Breakdown">
           <div class="track" id="track"></div>
           <div class="budget" style="left:100%"><span>BUDGET</span></div>
@@ -163,7 +188,7 @@
       </div>
 
       <div class="harness-table-block">
-        <div class="vu-title">BENCHMARK HARNESS LEDGER</div>
+        <div class="vu-title">BENCHMARK HARNESS LEDGER <span class="vu-title-sub">RAG CORE · CACHE-COLD · N=120 · 587,239 CHUNKS</span></div>
         <div id="benchSummary" class="bench-summary-line"></div>
         <div class="table-container">
           <table class="bench-table" id="benchTable">
