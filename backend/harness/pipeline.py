@@ -22,6 +22,17 @@ import numpy as np
 
 log = logging.getLogger(__name__)
 
+# Stages inside the latency contract (spec S3.1 `T_pipeline`). `retrieve` is the
+# wrapper Timer around the index sweep; dense/sparse/fuse/rerank are its
+# sub-timings and are NOT summed here, or retrieval would be double-counted.
+CORE_STAGES = ("guard_in", "cache_probe", "embed", "retrieve",
+               "guard_retrieval", "extract", "guard_out")
+
+# Spec S3.1 `T_retrieval`: normalize -> embed -> search -> fuse -> rerank ->
+# guardrail gate. Target <25ms P50. Reported alongside T_pipeline because the
+# brief asks for both separately.
+RETRIEVAL_STAGES = ("embed", "retrieve", "guard_retrieval")
+
 
 @dataclass
 class RunContext:
@@ -42,6 +53,23 @@ class RunContext:
 
     def event(self, kind: str, **data: Any) -> None:
         self.events.append({"kind": kind, "at_ms": round(self.elapsed_ms(), 3), **data})
+
+    def core_ms(self) -> float:
+        """The part of the run that the 200ms budget actually governs.
+
+        Sums only the stages this system owns and can be held to: retrieval,
+        the four guardrail layers, and extractive answering. Deliberately
+        excludes anything whose cost belongs to someone else's machine -- the
+        LLM compose call, STT, and the network hop -- because a budget you
+        cannot influence is not a budget, it is weather. `total_ms` still
+        reports the honest wall clock; this is the number the engineering
+        work moves.
+        """
+        return round(sum(self.timings.get(s, 0.0) for s in CORE_STAGES), 3)
+
+    def retrieval_ms(self) -> float:
+        """Spec S3.1 `T_retrieval` -- the retrieval sub-budget (<25ms P50)."""
+        return round(sum(self.timings.get(s, 0.0) for s in RETRIEVAL_STAGES), 3)
 
 
 class Timer:
@@ -165,6 +193,8 @@ class Pipeline:
             out["trace_id"] = ctx.trace_id
             out["timings"] = ctx.timings
             out["total_ms"] = round(ctx.elapsed_ms(), 3)
+            out["core_ms"] = ctx.core_ms()
+            out["retrieval_ms"] = ctx.retrieval_ms()
             return out
 
         # ── embed ──
@@ -180,6 +210,8 @@ class Pipeline:
                 out["trace_id"] = ctx.trace_id
                 out["timings"] = ctx.timings
                 out["total_ms"] = round(ctx.elapsed_ms(), 3)
+                out["core_ms"] = ctx.core_ms()
+                out["retrieval_ms"] = ctx.retrieval_ms()
                 return out
 
         # ── retrieve ──
@@ -242,6 +274,8 @@ class Pipeline:
             "trace_id": ctx.trace_id,
             "timings": ctx.timings,
             "total_ms": round(ctx.elapsed_ms(), 3),
+            "core_ms": ctx.core_ms(),
+            "retrieval_ms": ctx.retrieval_ms(),
             "cached": None,
             "events": ctx.events,
         }
@@ -269,7 +303,8 @@ class Pipeline:
                           "cross_lingual": h.lang != lang}
                          for h in hits],
             "trace_id": ctx.trace_id, "timings": ctx.timings,
-            "total_ms": round(ctx.elapsed_ms(), 3), "events": ctx.events,
+            "total_ms": round(ctx.elapsed_ms(), 3), "core_ms": ctx.core_ms(),
+            "retrieval_ms": ctx.retrieval_ms(), "events": ctx.events,
         }
 
     # ── terminal states ──
@@ -282,6 +317,7 @@ class Pipeline:
             "block_reason": rail.reason, "confidence": 0.0, "lang": lang,
             "citations": [], "passages": [], "trace_id": ctx.trace_id,
             "timings": ctx.timings, "total_ms": round(ctx.elapsed_ms(), 3),
+            "core_ms": ctx.core_ms(), "retrieval_ms": ctx.retrieval_ms(),
             "events": ctx.events,
         }
 
@@ -300,5 +336,6 @@ class Pipeline:
                           "cross_lingual": h.lang != lang}
                          for h in hits[:2]],
             "trace_id": ctx.trace_id, "timings": ctx.timings,
-            "total_ms": round(ctx.elapsed_ms(), 3), "events": ctx.events,
+            "total_ms": round(ctx.elapsed_ms(), 3), "core_ms": ctx.core_ms(),
+            "retrieval_ms": ctx.retrieval_ms(), "events": ctx.events,
         }

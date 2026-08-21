@@ -240,7 +240,13 @@ async def ask(req: AskRequest):
                         "block_reason": f"prompt-guard score {v.score:.4f}",
                         "confidence": 0.0, "lang": lang, "citations": [],
                         "passages": [], "timings": {"prompt_guard": round(v.latency_ms, 1)},
-                        "total_ms": round(v.latency_ms, 1), "answer_mode": "composed"}
+                        "total_ms": round(v.latency_ms, 1),
+                        "core_ms": round(v.latency_ms, 1),
+                        "retrieval_ms": 0.0,
+                        "budget_ms": 200.0,
+                        "retrieval_budget_ms": 25.0,
+                        "within_budget": v.latency_ms < 200.0,
+                        "answer_mode": "composed"}
     # Accurate mode reads more of the corpus before deciding. Retrieval is
     # sub-millisecond, so the extra depth costs nothing measurable and gives the
     # model a real chance to find the supporting passage.
@@ -322,7 +328,18 @@ async def ask(req: AskRequest):
             result["answer"] = extractive_answer
             result["llm_error"] = (res.error if res else "no provider")
 
+        # LLM time lands in total_ms only. core_ms stays as the pipeline set it:
+        # the compose call is a network hop to another provider, so folding it
+        # into the budgeted number would make the 200ms contract meaningless.
         result["total_ms"] = round(result["total_ms"] + result["timings"]["llm"], 3)
+
+    # Spec S3.1 names three metrics and asks that all be published separately.
+    # T_pipeline is the budgeted one; total_ms is the honest wall clock.
+    result.setdefault("core_ms", result.get("total_ms", 0.0))
+    result.setdefault("retrieval_ms", 0.0)
+    result["budget_ms"] = 200.0
+    result["retrieval_budget_ms"] = 25.0
+    result["within_budget"] = result["core_ms"] < 200.0
     return result
 
 
